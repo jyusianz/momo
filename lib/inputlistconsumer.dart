@@ -24,15 +24,20 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     try {
       final itemNameString = _itemNameController.text.trim();
       final itemDescriptionString = _itemDescriptionController.text.trim();
-      final itemVolume = double.parse(_itemVolumeController.text.trim());
-      final itemWeight = double.parse(_itemWeightController.text.trim());
-      final itemQuantity = int.parse(_itemQuantityController.text.trim());
+      final itemVolume = double.tryParse(_itemVolumeController.text.trim());
+      final itemWeight = double.tryParse(_itemWeightController.text.trim());
+      final itemQuantity = int.tryParse(_itemQuantityController.text.trim());
       final itemSpecialInstructionsString =
           _itemSpecialInstructionsController.text.trim();
+
+      if (itemVolume == null || itemWeight == null || itemQuantity == null) {
+        throw "Invalid input for volume, weight, or quantity.";
+      }
 
       final iid = FirebaseFirestore.instance.collection('Items').doc().id;
 
       if (globalUID != null) {
+        print("Saving item to: Consumer/$globalUID/List/$lid/Items/$iid");
         await FirebaseFirestore.instance
             .collection('Consumer')
             .doc(globalUID!)
@@ -48,16 +53,12 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           'Quantity': itemQuantity,
           'Special Instructions': itemSpecialInstructionsString,
         });
+        print("Item saved successfully.");
       } else {
-        // Handle the case where globalUID is null (user not logged in)
         print("Error: User not logged in (globalUID is null)");
-
-        // Option 1: Show a snackbar or dialog
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("You need to log in first.")),
         );
-
-        // Option 2: Navigate to the login screen
         Navigator.pushNamed(context, '/signin_consumer');
       }
     } catch (e) {
