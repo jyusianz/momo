@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'firebase/firebase_auth_service.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Inputlistconsumer extends StatefulWidget {
-  // Remove the uid parameter
   const Inputlistconsumer({super.key});
 
   @override
@@ -21,22 +20,64 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   final _itemQuantityController = TextEditingController();
   final _itemSpecialInstructionsController = TextEditingController();
 
-  Future<void> saveDetails() async {
+  Future<void> saveItems(String lid) async {
+    try {
+      final itemNameString = _itemNameController.text.trim();
+      final itemDescriptionString = _itemDescriptionController.text.trim();
+      final itemVolume = double.parse(_itemVolumeController.text.trim());
+      final itemWeight = double.parse(_itemWeightController.text.trim());
+      final itemQuantity = int.parse(_itemQuantityController.text.trim());
+      final itemSpecialInstructionsString =
+          _itemSpecialInstructionsController.text.trim();
+
+      final iid = FirebaseFirestore.instance.collection('Items').doc().id;
+
+      if (globalUID != null) {
+        await FirebaseFirestore.instance
+            .collection('Consumer')
+            .doc(globalUID!)
+            .collection('List')
+            .doc(lid)
+            .collection('Items')
+            .doc(iid)
+            .set({
+          'Name': itemNameString,
+          'Description': itemDescriptionString,
+          'Volume': itemVolume,
+          'Weight': itemWeight,
+          'Quantity': itemQuantity,
+          'Special Instructions': itemSpecialInstructionsString,
+        });
+      } else {
+        // Handle the case where globalUID is null (user not logged in)
+        print("Error: User not logged in (globalUID is null)");
+
+        // Option 1: Show a snackbar or dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("You need to log in first.")),
+        );
+
+        // Option 2: Navigate to the login screen
+        Navigator.pushNamed(context, '/signin_consumer');
+      }
+    } catch (e) {
+      print("Error saving item: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error saving item.")),
+      );
+    }
+  }
+
+  Future<void> saveLists() async {
     final titleString = _titleController.text.trim();
-    final itemNameString = _itemNameController.text.trim();
-    final itemDescriptionString = _itemDescriptionController.text.trim();
-    final itemVolume = double.parse(_itemVolumeController.text.trim());
-    final itemWeight = double.parse(_itemWeightController.text.trim());
-    final itemSpecialInstructionsString =
-        _itemSpecialInstructionsController.text.trim();
 
     // Generate a new document ID for the 'List' collection
-    final lid = FirebaseFirestore.instance.collection('List').doc().id;
+    final lid = FirebaseFirestore.instance.collection('Lists').doc().id;
 
     if (globalUID != null) {
       await FirebaseFirestore.instance
           .collection('Consumer')
-          .doc(globalUID!) // Use globalUID
+          .doc(globalUID!)
           .collection('List')
           .doc(lid)
           .set({
@@ -55,15 +96,13 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       // Option 2: Navigate to the login screen
       Navigator.pushNamed(context, '/signin_consumer');
     }
-    ;
   }
 
-  final List<Map<String, dynamic>> _items = []; // Use dynamic to store images
-  final Map<String, XFile?> _itemImages = {}; // Store images for each item
+  final List<Map<String, dynamic>> _items = [];
+  final Map<String, XFile?> _itemImages = {};
 
   bool _isTitleEditable = false;
-  bool _isEditing = false; // Flag for editing mode
-  int? _editingIndex; // To track which item is being edited
+  bool _isEditing = false;
 
   @override
   void dispose() {
@@ -154,7 +193,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                saveDetails();
+                                saveLists();
                                 Navigator.pop(context);
                               },
                               child: const Text('Save'),
@@ -199,7 +238,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           _buildImage(),
           const SizedBox(height: 20),
           _items.isNotEmpty ? _buildItemsList() : _buildNoItemsText(),
-          const SizedBox(height: 150), // Added extra padding
+          const SizedBox(height: 150),
         ],
       ),
     );
@@ -328,7 +367,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
 
   Widget _buildItemsList() {
     return Padding(
-      padding: const EdgeInsets.all(16.0), // Added padding around the list
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         children: _items.asMap().entries.map((entry) {
           int index = entry.key;
@@ -383,9 +422,9 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       final item = _items[editIndex];
       _itemNameController.text = item["name"];
       _itemDescriptionController.text = item["description"];
-      _itemVolumeController.text = item["volume"];
-      _itemWeightController.text = item["weight"];
-      _itemQuantityController.text = item["quantity"];
+      _itemVolumeController.text = item["volume"].toString();
+      _itemWeightController.text = item["weight"].toString();
+      _itemQuantityController.text = item["quantity"].toString();
       _itemSpecialInstructionsController.text = item["specialInstructions"];
     } else {
       _itemNameController.clear();
@@ -432,9 +471,32 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               _addOrEditItem(editIndex: editIndex);
               Navigator.pop(context);
+
+              // Save the list first to get the lid
+              await saveLists();
+
+              // Get the latest list ID
+              final querySnapshot = await FirebaseFirestore.instance
+                  .collection('Consumer')
+                  .doc(globalUID!)
+                  .collection('List')
+                  .orderBy('createdAt', descending: true)
+                  .limit(1)
+                  .get();
+
+              if (querySnapshot.docs.isNotEmpty) {
+                final lid = querySnapshot.docs.first.id;
+                saveItems(lid);
+              } else {
+                // Handle the case where no list is found
+                print("Error: No list found.");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Error saving items.")),
+                );
+              }
             },
             child: const Text('Save'),
           ),
@@ -454,12 +516,10 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     };
 
     if (editIndex != null) {
-      // Edit existing item
       setState(() {
         _items[editIndex] = item;
       });
     } else {
-      // Add new item
       setState(() {
         _items.add(item);
       });
@@ -510,6 +570,7 @@ class OrderCard extends StatelessWidget {
   final String item;
   final String specialInstructions;
   final String imagePicker;
+
   final VoidCallback onTap;
 
   const OrderCard({

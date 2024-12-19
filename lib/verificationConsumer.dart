@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:food/main.dart'; // Import to access globalUID
 import 'completeprofileconsumer.dart';
 
 class VerificationConsumer extends StatefulWidget {
@@ -8,7 +7,7 @@ class VerificationConsumer extends StatefulWidget {
   @override
   State<VerificationConsumer> createState() => _VerificationConsumerState();
 }
-
+  
 class _VerificationConsumerState extends State<VerificationConsumer> {
   final _controllers = [
     TextEditingController(),

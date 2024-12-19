@@ -135,22 +135,31 @@ class _Signin_consumerState extends State<Signin_consumer> {
               const SizedBox(height: 40),
               // Sign Up Button
               ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/consumerHome');
+                onPressed: () async {
+                  final emailString = _emailController.text.trim();
+                  final passwordString = _passwordController.text.trim();
+
+                  final user = await _service.verifyCredential(
+                      emailString, passwordString);
+
+                  if (user != null) {
+                    // Navigate to the home screen if login is successful
+                    Navigator.pushNamed(context, '/consumerHome');
+                  } else {
+                    // Show an error message if login fails
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Invalid credentials')),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 100,
-                    vertical: 15,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
                   textStyle: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 18, fontWeight: FontWeight.bold),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                      borderRadius: BorderRadius.circular(20)),
                 ),
                 child: const Text('Sign In'),
               ),

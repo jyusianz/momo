@@ -128,7 +128,7 @@ class _SignupConsumerState extends State<SignupConsumer> {
       if (uid == null) {
         throw Exception("User ID is null.");
       }
-
+ 
       // Save user data in Firestore under the same UID
       await FirebaseFirestore.instance.collection('Consumer').doc(uid).set({
         'First Name': firstNameString,
