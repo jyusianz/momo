@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:food/firebase/firebase_auth_service.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class Inputlistconsumer extends StatefulWidget {
   const Inputlistconsumer({super.key});
@@ -12,7 +13,6 @@ class Inputlistconsumer extends StatefulWidget {
 
 class _InputlistconsumerState extends State<Inputlistconsumer> {
   final _titleController = TextEditingController();
-  final _dateController = TextEditingController();
   final _itemNameController = TextEditingController();
   final _itemDescriptionController = TextEditingController();
   final _itemVolumeController = TextEditingController();
@@ -20,7 +20,9 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   final _itemQuantityController = TextEditingController();
   final _itemSpecialInstructionsController = TextEditingController();
 
-  Future<void> saveItems(String lid) async {
+  String? _currentLid;
+
+  Future<void> saveItems(String lid, {String? itemId}) async {
     try {
       final itemNameString = _itemNameController.text.trim();
       final itemDescriptionString = _itemDescriptionController.text.trim();
@@ -30,30 +32,28 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       final itemSpecialInstructionsString =
           _itemSpecialInstructionsController.text.trim();
 
-      if (itemVolume == null || itemWeight == null || itemQuantity == null) {
-        throw "Invalid input for volume, weight, or quantity.";
-      }
-
-      final iid = FirebaseFirestore.instance.collection('Items').doc().id;
+      final itemIdToSave =
+          itemId ?? FirebaseFirestore.instance.collection('Items').doc().id;
 
       if (globalUID != null) {
-        print("Saving item to: Consumer/$globalUID/List/$lid/Items/$iid");
+        print(
+            "Saving/Updating item with ID $itemIdToSave to: Consumer/$globalUID/List/$lid/$itemIdToSave");
         await FirebaseFirestore.instance
             .collection('Consumer')
             .doc(globalUID!)
             .collection('List')
             .doc(lid)
-            .collection('Items')
-            .doc(iid)
+            .collection(itemIdToSave)
+            .doc('Details')
             .set({
           'Name': itemNameString,
           'Description': itemDescriptionString,
-          'Volume': itemVolume,
-          'Weight': itemWeight,
-          'Quantity': itemQuantity,
+          'Volume': itemVolume ?? 0,
+          'Weight': itemWeight ?? 0,
+          'Quantity': itemQuantity ?? 1,
           'Special Instructions': itemSpecialInstructionsString,
         });
-        print("Item saved successfully.");
+        print("Item with ID $itemIdToSave saved/updated successfully.");
       } else {
         print("Error: User not logged in (globalUID is null)");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -85,23 +85,48 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
         'Title': titleString,
         'createdAt': Timestamp.now(),
       });
+
+      _currentLid = lid; // Store the generated list ID
     } else {
       // Handle the case where globalUID is null (user not logged in)
       print("Error: User not logged in (globalUID is null)");
 
-      // Option 1: Show a snackbar or dialog
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("You need to log in first.")),
       );
 
-      // Option 2: Navigate to the login screen
       Navigator.pushNamed(context, '/signin_consumer');
     }
   }
 
-  final List<Map<String, dynamic>> _items = [];
-  final Map<String, XFile?> _itemImages = {};
+  Future<void> deleteItem(String lid, String itemName) async {
+    try {
+    if (globalUID != null) {
+      print("Deleting item with ID $itemId from: Consumer/$globalUID/List/$lid/$itemId");
+      await FirebaseFirestore.instance
+          .collection('Consumer')
+          .doc(globalUID!)
+          .collection('List')
+          .doc(lid)
+          .collection(itemId) // This should be the itemId, not 'Items'
+          .doc('Details')
+          .delete();
+      print("Item with ID $itemId deleted successfully.");
+    } else {
+        print("Error: User not logged in (globalUID is null)");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("You need to log in first.")),
+        );
+      }
+    } catch (e) {
+      print("Error deleting item collection: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error deleting item.")),
+      );
+    }
+  }
 
+  final Map<String, XFile?> _itemImages = {};
   bool _isTitleEditable = false;
   bool _isEditing = false;
 
@@ -193,8 +218,8 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                               child: const Text('Cancel'),
                             ),
                             ElevatedButton(
-                              onPressed: () {
-                                saveLists();
+                              onPressed: () async {
+                                await saveLists();
                                 Navigator.pop(context);
                               },
                               child: const Text('Save'),
@@ -226,7 +251,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTitle(),
-          _buildDate(),
+          _buildTimestamp(),
           const SizedBox(height: 6.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -238,7 +263,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           const SizedBox(height: 16.0),
           _buildImage(),
           const SizedBox(height: 20),
-          _items.isNotEmpty ? _buildItemsList() : _buildNoItemsText(),
+          _currentLid != null ? _buildItemsList() : _buildNoItemsText(),
           const SizedBox(height: 150),
         ],
       ),
@@ -273,36 +298,15 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
-  Widget _buildDate() {
+  Widget _buildTimestamp() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: GestureDetector(
-        onTap: () async {
-          final DateTime? picked = await showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2100),
-          );
-          if (picked != null) {
-            setState(() {
-              _dateController.text = picked.toString().split(' ').first;
-            });
-          }
-        },
-        child: AbsorbPointer(
-          child: TextField(
-            controller: _dateController,
-            readOnly: true,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Date',
-            ),
-          ),
+      child: Text(
+        // Format the current date and time as needed
+        DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
@@ -349,8 +353,65 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   }
 
   Widget _buildImage() {
-    return Center(
-      child: Image.asset('Momo_images/find.png'),
+    // Conditionally display the image based on whether there are items in the list
+    if (_items.isEmpty) {
+      return Center(
+        child: Image.asset('Momo_images/find.png'),
+      );
+    } else {
+      return const SizedBox
+          .shrink(); // Return an empty widget if there are items
+    }
+  }
+
+  void _showItemDetailsDialog(Map<String, dynamic> item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(item['name']),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDetailRow('Description:', item['description']),
+              _buildDetailRow('Volume:', item['volume'].toString()),
+              _buildDetailRow('Weight:', item['weight'].toString()),
+              _buildDetailRow('Quantity:', item['quantity'].toString()),
+              _buildDetailRow(
+                  'Special Instructions:', item['specialInstructions']),
+              // Add more details as needed
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close the details dialog
+              _showAddOrEditItemDialog(
+                editIndex: _items.indexOf(item), // Open the edit dialog
+              );
+            },
+            child: const Text('Edit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label),
+          Text(value),
+        ],
+      ),
     );
   }
 
@@ -367,53 +428,40 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   }
 
   Widget _buildItemsList() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: _items.asMap().entries.map((entry) {
-          int index = entry.key;
-          Map<String, dynamic> item = entry.value;
-          return Column(
-            children: [
-              OrderCard(
-                orderName: item["name"] ?? '',
-                description: item["description"] ?? '',
-                weight: item["weight"] ?? '',
-                volume: item["volume"] ?? '',
-                item: item["quantity"] ?? '',
-                specialInstructions: item["specialInstructions"] ?? '',
-                imagePicker: _itemImages[item["name"]] != null
-                    ? _itemImages[item["name"]]!.path
-                    : '',
-                onTap: () {
-                  _showAddOrEditItemDialog(editIndex: index);
-                },
-              ),
-              if (_isEditing)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        _showAddOrEditItemDialog(editIndex: index);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        setState(() {
-                          _items.removeAt(index);
-                          _itemImages.remove(item["name"]);
-                        });
-                      },
-                    ),
-                  ],
-                ),
-            ],
-          );
-        }).toList(),
-      ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Consumer')
+          .doc(globalUID!)
+          .collection('List')
+          .doc(_currentLid!)
+          .collection('Items')
+          .snapshots(),
+      builder: (context, snapshot) {
+        // ... (same as before) ...
+
+        return ListView(
+          children: snapshot.data!.docs.map((DocumentSnapshot document) {
+            Map<String, dynamic> data =
+                document.data()! as Map<String, dynamic>;
+            final itemId = document.id;
+
+            return OrderCard(
+              itemId: itemId,
+              orderName: data['Name'],
+              // ... (rest of your OrderCard parameters) ...
+              onTap: () {
+                _showItemDetailsDialog(data);
+              },
+              onDelete: () {
+                deleteItem(_currentLid!, itemId);
+              },
+              onEdit: () {
+                _showAddOrEditItemDialog(itemId: itemId);
+              },
+            );
+          }).toList(),
+        );
+      },
     );
   }
 
@@ -472,31 +520,25 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () async {
-              _addOrEditItem(editIndex: editIndex);
+            onPressed: () {
+              _addOrEditItem(itemId: itemId);
               Navigator.pop(context);
 
-              // Save the list first to get the lid
-              await saveLists();
-
-              // Get the latest list ID
-              final querySnapshot = await FirebaseFirestore.instance
-                  .collection('Consumer')
-                  .doc(globalUID!)
-                  .collection('List')
-                  .orderBy('createdAt', descending: true)
-                  .limit(1)
-                  .get();
-
-              if (querySnapshot.docs.isNotEmpty) {
-                final lid = querySnapshot.docs.first.id;
-                saveItems(lid);
+              if (_currentLid != null) {
+                saveItems(_currentLid!, itemId: itemId);
               } else {
-                // Handle the case where no list is found
-                print("Error: No list found.");
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Error saving items.")),
-                );
+                // No list exists, so create a new one and then add the item
+                saveLists().then((_) {
+                  if (_currentLid != null) {
+                    saveItems(_currentLid!);
+                  } else {
+                    // Handle the case where list creation failed
+                    print("Error: Failed to create a list.");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Error saving item.")),
+                    );
+                  }
+                });
               }
             },
             child: const Text('Save'),
@@ -506,24 +548,37 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
-  void _addOrEditItem({int? editIndex}) {
+  void _addOrEditItem({String? itemId}) async {
     final item = {
-      "name": _itemNameController.text,
-      "description": _itemDescriptionController.text,
-      "volume": _itemVolumeController.text,
-      "weight": _itemWeightController.text,
-      "quantity": _itemQuantityController.text,
-      "specialInstructions": _itemSpecialInstructionsController.text,
+      'Name': _itemNameController.text.trim(),
+      'Description': _itemDescriptionController.text.trim(),
+      'Volume': double.tryParse(_itemVolumeController.text.trim()) ?? 0,
+      'Weight': double.tryParse(_itemWeightController.text.trim()) ?? 0,
+      'Quantity': int.tryParse(_itemQuantityController.text.trim()) ?? 1,
+      'Special Instructions': _itemSpecialInstructionsController.text.trim(),
     };
 
-    if (editIndex != null) {
-      setState(() {
-        _items[editIndex] = item;
-      });
+    if (itemId != null) {
+      // Editing existing item
+      await FirebaseFirestore.instance
+          .collection('Consumer')
+          .doc(globalUID!)
+          .collection('List')
+          .doc(_currentLid)
+          .collection(itemId)
+          .doc('Details')
+          .update(item);
     } else {
-      setState(() {
-        _items.add(item);
-      });
+      // Adding new item
+      final newItemRef = await FirebaseFirestore.instance
+          .collection('Consumer')
+          .doc(globalUID!)
+          .collection('List')
+          .doc(_currentLid)
+          .collection('Items')
+          .add(item);
+
+      itemId = newItemRef.id;
     }
   }
 
@@ -571,8 +626,9 @@ class OrderCard extends StatelessWidget {
   final String item;
   final String specialInstructions;
   final String imagePicker;
-
   final VoidCallback onTap;
+  final VoidCallback onDelete;
+  final VoidCallback onEdit;
 
   const OrderCard({
     required this.orderName,
@@ -583,6 +639,8 @@ class OrderCard extends StatelessWidget {
     required this.specialInstructions,
     required this.imagePicker,
     required this.onTap,
+    required this.onDelete,
+    required this.onEdit,
     super.key,
   });
 
@@ -594,7 +652,21 @@ class OrderCard extends StatelessWidget {
         child: ListTile(
           title: Text(orderName),
           subtitle: Text(description),
-          trailing: Image.asset(imagePicker),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  onDelete(); // Directly call onDelete()
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
