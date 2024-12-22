@@ -1,7 +1,44 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:intl/intl.dart';
 
-class ConsumerHome extends StatelessWidget {
+class ConsumerHome extends StatefulWidget {
   const ConsumerHome({super.key});
+
+  @override
+  State<ConsumerHome> createState() => _ConsumerHomeState();
+}
+
+class _ConsumerHomeState extends State<ConsumerHome> {
+  String _userName = 'User'; // Default name
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    if (globalUID != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('Consumer')
+            .doc(globalUID!)
+            .get();
+
+        if (userDoc.exists) {
+          setState(() {
+            _userName = userDoc['User Name'];
+          });
+        } else {
+          print('User document not found');
+        }
+      } catch (e) {
+        print('Error fetching user name: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +67,9 @@ class ConsumerHome extends StatelessWidget {
                     child: Image.asset('Momo_images/Account.png'),
                   ),
                   const SizedBox(width: 20),
-                  const Text(
-                    'Juan D.',
-                    style: TextStyle(
+                  Text(
+                    _userName,
+                    style: const TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF3DBC96),
@@ -58,12 +95,11 @@ class ConsumerHome extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 5.0), // Adjusted padding
+                  padding: const EdgeInsets.symmetric(vertical: 5.0),
                 ),
                 child: const Text(
-                  '  + Create a New List         ',
-                  style: TextStyle(fontSize: 40), // Set text size independently
+                  '  + Create a New List         ',
+                  style: TextStyle(fontSize: 40),
                 ),
               ),
             ),
@@ -79,42 +115,7 @@ class ConsumerHome extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'All',
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'Folder',
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Center(
-              child: Image.asset('Momo_images/No list.png'),
-            ),
-            const SizedBox(height: 16),
-            const Center(
-              child: Text(
-                'No list yet. Create one now.',
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
+            _buildListsStream(),
             const SizedBox(height: 32),
           ],
         ),
@@ -147,6 +148,107 @@ class ConsumerHome extends StatelessWidget {
             child: Image.asset('Momo_images/profile.png'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildListsStream() {
+    if (globalUID == null) {
+      return const Center(
+        child: Text("No lists available."),
+      );
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Consumer')
+          .doc(globalUID!)
+          .collection('List')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text("No lists available."),
+          );
+        }
+
+        return ListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: snapshot.data!.docs.map((DocumentSnapshot document) {
+            Map<String, dynamic> data =
+                document.data()! as Map<String, dynamic>;
+            final listId = document.id;
+
+            return ListCard(
+              title: data['Title'],
+              createdAt: data['createdAt'],
+              itemCount: data['itemCount'] ?? 0, // Use itemCount from data
+              onTap: () {
+                Navigator.pushNamed(context, '/showlistconsumer');
+              },
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class ListCard extends StatelessWidget {
+  final String title;
+  final Timestamp? createdAt;
+  final int itemCount;
+  final VoidCallback onTap;
+
+  const ListCard({
+    required this.title,
+    required this.createdAt,
+    required this.itemCount,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                createdAt != null
+                    ? DateFormat('yyyy-MM-dd HH:mm').format(createdAt!.toDate())
+                    : 'Not created yet',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$itemCount items', // Display the item count
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -4,14 +4,14 @@ import 'package:food/firebase/firebase_auth_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-class Inputlistconsumer extends StatefulWidget {
-  const Inputlistconsumer({super.key});
+class Showlistconsumer extends StatefulWidget {
+  const Showlistconsumer({super.key});
 
   @override
-  State<Inputlistconsumer> createState() => _InputlistconsumerState();
+  State<Showlistconsumer> createState() => _ShowlistconsumerState();
 }
 
-class _InputlistconsumerState extends State<Inputlistconsumer> {
+class _ShowlistconsumerState extends State<Showlistconsumer> {
   final _titleController = TextEditingController();
   final _itemNameController = TextEditingController();
   final _itemDescriptionController = TextEditingController();
@@ -21,6 +21,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   final _itemSpecialInstructionsController = TextEditingController();
 
   String? _currentLid;
+  bool _isEditing = false;
 
   @override
   void initState() {
@@ -61,7 +62,9 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
         print("Item with ID $itemIdToSave saved/updated successfully.");
 
         // Only increment when adding a new item
-        //await _updateItemCount(lid, 1);
+        if (itemId == null) {
+          await _updateItemCount(lid, 1);
+        }
       } else {
         print("Error: User not logged in (globalUID is null)");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -160,14 +163,14 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       // Use a transaction to ensure atomicity
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         DocumentSnapshot listDoc = await transaction.get(listRef);
-        int currentCount = listDoc['itemCount'] ?? 0;
-        transaction.update(listRef, {'itemCount': currentCount + change});
 
         // Check if the document exists
         if (!listDoc.exists) {
           print("List document $lid does not exist!"); // Debugging log
           return;
         }
+
+        int currentCount = listDoc['itemCount'] ?? 0;
         int newCount = currentCount + change;
 
         print(
@@ -310,6 +313,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildAddItemButton(),
+              _buildEditButton(),
             ],
           ),
           const SizedBox(height: 16.0),
@@ -380,6 +384,26 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           _showAddOrEditItemDialog();
         },
         child: const Text('Add Item'),
+      ),
+    );
+  }
+
+  Widget _buildEditButton() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton(
+        onPressed: () {
+          setState(() {
+            _isEditing = !_isEditing;
+          });
+        },
+        child: Text(
+          _isEditing ? 'Save' : 'Edit',
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+          ),
+        ),
       ),
     );
   }
@@ -495,6 +519,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
               item: data['Quantity'].toString(),
               specialInstructions: data['Special Instructions'],
               imagePicker: '',
+              isEditing: _isEditing, // Pass the _isEditing state
               onTap: () {
                 _showItemDetailsDialog(data);
               },
@@ -646,13 +671,16 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
             .collection('Consumer')
             .doc(globalUID!)
             .collection('List')
-            .doc(_currentLid)
+            .doc(_currentLid!)
             .collection('Items')
             .add(item);
 
         print("New item added with ID: ${newItemRef.id}"); // Debugging log
+
         // Increment item count
         await _updateItemCount(_currentLid!, 1);
+      } else {
+        print("Error adding item: _currentLid or globalUID is null");
       }
     }
   }
@@ -685,6 +713,12 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       ),
     );
   }
+
+  void _saveChanges() {
+    setState(() {
+      _isEditing = false;
+    });
+  }
 }
 
 class OrderCard extends StatelessWidget {
@@ -695,6 +729,7 @@ class OrderCard extends StatelessWidget {
   final String item;
   final String specialInstructions;
   final String imagePicker;
+  final bool isEditing; // Add this property
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
@@ -707,6 +742,7 @@ class OrderCard extends StatelessWidget {
     required this.item,
     required this.specialInstructions,
     required this.imagePicker,
+    required this.isEditing, // Add this to the constructor
     required this.onTap,
     required this.onDelete,
     required this.onEdit,
@@ -721,19 +757,21 @@ class OrderCard extends StatelessWidget {
         child: ListTile(
           title: Text(orderName),
           subtitle: Text(description),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: onEdit,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: onDelete,
-              ),
-            ],
-          ),
+          trailing: isEditing // Conditionally render the icons
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: onEdit,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: onDelete,
+                    ),
+                  ],
+                )
+              : null, // No trailing widget if not editing
         ),
       ),
     );
