@@ -53,7 +53,7 @@ class OrderDetailsScreen extends StatelessWidget {
             // List of OrderItems
             Column(
               children: [
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -61,7 +61,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   price: 'P 250.00',
                   quantity: 1,
                 ),
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -69,7 +69,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   price: 'P 250.00',
                   quantity: 1,
                 ),
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -77,7 +77,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   price: 'P 250.00',
                   quantity: 1,
                 ),
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -85,7 +85,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   price: 'P 250.00',
                   quantity: 1,
                 ),
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -93,7 +93,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   price: 'P 250.00',
                   quantity: 1,
                 ),
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -101,7 +101,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   price: 'P 250.00',
                   quantity: 1,
                 ),
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -109,7 +109,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   price: 'P 250.00',
                   quantity: 1,
                 ),
-                OrderItem(
+                const OrderItem(
                   imageUrl: 'Momo_images/egg.png',
                   name: 'Eggs',
                   description:
@@ -159,8 +159,8 @@ class OrderItem extends StatefulWidget {
 class _OrderItemState extends State<OrderItem> {
   final _formKey = GlobalKey<FormState>();
   String _price = '';
-  String _weight = '';
-  String _volume = '';
+  final String _weight = '';
+  final String _volume = '';
   int _quantity = 1;
   bool _isEditing = false;
 

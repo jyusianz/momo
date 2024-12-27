@@ -162,7 +162,7 @@ class _VerificationConsumerState extends State<VerificationConsumer> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CompleteProfileConsumer(),
+                      builder: (context) => const CompleteProfileConsumer(),
                     ),
                   );
                 },

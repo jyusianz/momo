@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:food/firebase/firebase_auth_service.dart';
 import 'package:intl/intl.dart';
+import 'package:food/showlistconsumer.dart';
 
 class ConsumerHome extends StatefulWidget {
   const ConsumerHome({super.key});
@@ -12,6 +13,7 @@ class ConsumerHome extends StatefulWidget {
 
 class _ConsumerHomeState extends State<ConsumerHome> {
   String _userName = 'User'; // Default name
+  bool _isEditing = false; // To track editing state
 
   @override
   void initState() {
@@ -19,6 +21,7 @@ class _ConsumerHomeState extends State<ConsumerHome> {
     _fetchUserName();
   }
 
+  // Fetch the user's name from Firestore
   Future<void> _fetchUserName() async {
     if (globalUID != null) {
       try {
@@ -43,6 +46,7 @@ class _ConsumerHomeState extends State<ConsumerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // No AppBar
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,14 +108,30 @@ class _ConsumerHomeState extends State<ConsumerHome> {
               ),
             ),
             const SizedBox(height: 32),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'My Lists',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+            Padding(
+              // Added padding
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // Align items
+                children: [
+                  const Text(
+                    'My Lists',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // Edit button
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _isEditing = !_isEditing;
+                      });
+                    },
+                    child: Text(_isEditing ? 'Done' : 'Edit'),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -152,6 +172,7 @@ class _ConsumerHomeState extends State<ConsumerHome> {
     );
   }
 
+  // Build the stream of lists from Firestore
   Widget _buildListsStream() {
     if (globalUID == null) {
       return const Center(
@@ -186,17 +207,68 @@ class _ConsumerHomeState extends State<ConsumerHome> {
           children: snapshot.data!.docs.map((DocumentSnapshot document) {
             Map<String, dynamic> data =
                 document.data()! as Map<String, dynamic>;
-            final listId = document.id;
 
             return ListCard(
               title: data['Title'],
               createdAt: data['createdAt'],
-              itemCount: data['itemCount'] ?? 0, // Use itemCount from data
+              itemCount: data['itemCount'] ?? 0,
+              isEditing: _isEditing, // Pass the editing state to ListCard
               onTap: () {
-                Navigator.pushNamed(context, '/showlistconsumer');
+                // Pass the lid (document ID) to Showlistconsumer
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Showlistconsumer(lid: document.id),
+                  ),
+                );
+              },
+              onDelete: () {
+                _showDeleteConfirmationDialog(document.id, data['Title']);
               },
             );
           }).toList(),
+        );
+      },
+    );
+  }
+
+  // Show the delete confirmation dialog
+  void _showDeleteConfirmationDialog(String lid, String title) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm Delete"),
+          content: Text("Are you sure you want to delete the list '$title'?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  // Delete the list from Firestore
+                  await FirebaseFirestore.instance
+                      .collection('Consumer')
+                      .doc(globalUID!)
+                      .collection('List')
+                      .doc(lid)
+                      .delete();
+                  print("List with ID $lid deleted successfully.");
+
+                  // Close the dialog
+                  Navigator.pop(context);
+                } catch (e) {
+                  print("Error deleting list: $e");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Error deleting list.")),
+                  );
+                }
+              },
+              child: const Text("Delete"),
+            ),
+          ],
         );
       },
     );
@@ -208,12 +280,16 @@ class ListCard extends StatelessWidget {
   final Timestamp? createdAt;
   final int itemCount;
   final VoidCallback onTap;
+  final VoidCallback onDelete; // To handle delete action
+  final bool isEditing; // To control the visibility of the delete icon
 
   const ListCard({
     required this.title,
     required this.createdAt,
     required this.itemCount,
     required this.onTap,
+    required this.onDelete,
+    required this.isEditing,
     super.key,
   });
 
@@ -224,28 +300,41 @@ class ListCard extends StatelessWidget {
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align items
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              // Column for list details (title, date, item count)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    createdAt != null
+                        ? DateFormat('yyyy-MM-dd HH:mm')
+                            .format(createdAt!.toDate())
+                        : 'Not created yet',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$itemCount items',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
+              // Conditionally show the delete icon
+              if (isEditing)
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: onDelete,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                createdAt != null
-                    ? DateFormat('yyyy-MM-dd HH:mm').format(createdAt!.toDate())
-                    : 'Not created yet',
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '$itemCount items', // Display the item count
-                style: const TextStyle(fontSize: 14),
-              ),
             ],
           ),
         ),

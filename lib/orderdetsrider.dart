@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -41,7 +41,7 @@ class _OrderdetsriderState extends State<Orderdetsrider> {
           },
         ),
       ),
-      body: OrderDetailsScreen(),
+      body: const OrderDetailsScreen(),
     );
   }
 }
@@ -76,7 +76,7 @@ class OrderDetailsScreen extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Column(
+            const Column(
               children: [
                 OrderItem(
                   imageUrl: 'Momo_images/egg.png',
@@ -170,7 +170,7 @@ class OrderDetailsScreen extends StatelessWidget {
                               minimumSize: const Size(double.infinity, 50),
                               textStyle: const TextStyle(fontSize: 20),
                             ),
-                            child: Text('Continue'),
+                            child: const Text('Continue'),
                           ),
                         ],
                       ),
@@ -182,7 +182,7 @@ class OrderDetailsScreen extends StatelessWidget {
                 minimumSize: const Size(double.infinity, 50),
                 textStyle: const TextStyle(fontSize: 20),
               ),
-              child: Text('Take Order'),
+              child: const Text('Take Order'),
             ),
           ],
         ),

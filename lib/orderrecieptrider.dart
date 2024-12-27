@@ -67,22 +67,22 @@ class OrderDetailsScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          Text(
+          const Text(
             "    +(63)9123456789",
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
-          Text(
+          const Text(
             "    Zone 6, Gumamela Street,",
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
-          Text(
+          const Text(
             "    Macanhan Carmen, Cagayan de Oro City",
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
-          Text(
+          const Text(
             "    Mis. Or., 9000",
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
@@ -110,10 +110,10 @@ class OrderDetailsScreen extends StatelessWidget {
                               fit: BoxFit.cover,
                             ),
                             const SizedBox(width: 16),
-                            Expanded(
+                            const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
+                                children: [
                                   Text(
                                     "Fresh Eggs",
                                     style: TextStyle(
@@ -139,11 +139,11 @@ class OrderDetailsScreen extends StatelessWidget {
                     ),
                   const SizedBox(height: 16),
                   // Payment Summary Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           "Merchandise Estimated Subtotal: P 300.00",
                           style: TextStyle(fontSize: 16),
@@ -169,9 +169,9 @@ class OrderDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   // Note Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: const Center(
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Center(
                       child: Text(
                         "Note:",
                         style: TextStyle(
@@ -182,9 +182,9 @@ class OrderDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: const Text(
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
                       "An overpayment will be returned to the customer upon delivery.",
                       style: TextStyle(
                         fontSize: 16,

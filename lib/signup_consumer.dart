@@ -143,7 +143,7 @@ class _SignupConsumerState extends State<SignupConsumer> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => VerificationConsumer(),
+          builder: (context) => const VerificationConsumer(),
         ),
       );
     } catch (e) {

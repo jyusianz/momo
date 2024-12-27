@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Orderlistrequestconsumer extends StatelessWidget {
-  const Orderlistrequestconsumer({Key? key}) : super(key: key);
+  const Orderlistrequestconsumer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -72,11 +72,11 @@ class Orderlistrequestconsumer extends StatelessWidget {
                                   height: 100,
                                 ),
                                 const SizedBox(width: 16),
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Text(
                                         "Fresh Eggs",
                                         style: TextStyle(
@@ -115,11 +115,11 @@ class Orderlistrequestconsumer extends StatelessWidget {
                                   height: 100,
                                 ),
                                 const SizedBox(width: 16),
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Text(
                                         "Fresh Eggs",
                                         style: TextStyle(
@@ -158,11 +158,11 @@ class Orderlistrequestconsumer extends StatelessWidget {
                                   height: 100,
                                 ),
                                 const SizedBox(width: 16),
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Text(
                                         "Fresh Eggs",
                                         style: TextStyle(
@@ -201,11 +201,11 @@ class Orderlistrequestconsumer extends StatelessWidget {
                                   height: 100,
                                 ),
                                 const SizedBox(width: 16),
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Text(
                                         "Fresh Eggs",
                                         style: TextStyle(
@@ -244,11 +244,11 @@ class Orderlistrequestconsumer extends StatelessWidget {
                                   height: 100,
                                 ),
                                 const SizedBox(width: 16),
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Text(
                                         "Fresh Eggs",
                                         style: TextStyle(
@@ -287,11 +287,11 @@ class Orderlistrequestconsumer extends StatelessWidget {
                                   height: 100,
                                 ),
                                 const SizedBox(width: 16),
-                                Expanded(
+                                const Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Text(
                                         "Fresh Eggs",
                                         style: TextStyle(
@@ -329,7 +329,7 @@ class Orderlistrequestconsumer extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                Text(
+                const Text(
                   "Estimated Total: \$30.00",
                   style: TextStyle(
                     fontSize: 18,

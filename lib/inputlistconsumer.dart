@@ -21,6 +21,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   final _itemSpecialInstructionsController = TextEditingController();
 
   String? _currentLid;
+  bool _isEditing = false;
 
   @override
   void initState() {
@@ -120,20 +121,43 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   Future<void> deleteItem(String lid, String itemId) async {
     try {
       if (globalUID != null) {
-        print(
-            "Deleting item with ID $itemId from: Consumer/$globalUID/List/$lid/Items/$itemId");
-        await FirebaseFirestore.instance
-            .collection('Consumer')
-            .doc(globalUID!)
-            .collection('List')
-            .doc(lid)
-            .collection('Items')
-            .doc(itemId)
-            .delete();
-        print("Item with ID $itemId deleted successfully.");
+        // Show confirmation dialog before deleting
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Confirm Delete"),
+              content: const Text("Are you sure you want to delete this item?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    // Delete the item if the user confirms
+                    await FirebaseFirestore.instance
+                        .collection('Consumer')
+                        .doc(globalUID!)
+                        .collection('List')
+                        .doc(lid)
+                        .collection('Items')
+                        .doc(itemId)
+                        .delete();
+                    print("Item with ID $itemId deleted successfully.");
 
-        // Update item count in the list document
-        await _updateItemCount(lid, -1);
+                    // Update item count in the list document
+                    await _updateItemCount(lid, -1);
+
+                    // Close the dialog
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Delete"),
+                ),
+              ],
+            );
+          },
+        );
       } else {
         print("Error: User not logged in (globalUID is null)");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -310,6 +334,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildAddItemButton(),
+              _buildEditButton(),
             ],
           ),
           const SizedBox(height: 16.0),
@@ -380,6 +405,26 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           _showAddOrEditItemDialog();
         },
         child: const Text('Add Item'),
+      ),
+    );
+  }
+
+  Widget _buildEditButton() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton(
+        onPressed: () {
+          setState(() {
+            _isEditing = !_isEditing;
+          });
+        },
+        child: Text(
+          _isEditing ? 'Save' : 'Edit',
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+          ),
+        ),
       ),
     );
   }
@@ -495,6 +540,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
               item: data['Quantity'].toString(),
               specialInstructions: data['Special Instructions'],
               imagePicker: '',
+              isEditing: _isEditing, // Pass the _isEditing state
               onTap: () {
                 _showItemDetailsDialog(data);
               },
@@ -653,6 +699,8 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
         print("New item added with ID: ${newItemRef.id}"); // Debugging log
         // Increment item count
         await _updateItemCount(_currentLid!, 1);
+      } else {
+        print("Error adding item: _currentLid or globalUID is null");
       }
     }
   }
@@ -685,6 +733,12 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       ),
     );
   }
+
+  void _saveChanges() {
+    setState(() {
+      _isEditing = false;
+    });
+  }
 }
 
 class OrderCard extends StatelessWidget {
@@ -695,6 +749,7 @@ class OrderCard extends StatelessWidget {
   final String item;
   final String specialInstructions;
   final String imagePicker;
+  final bool isEditing; // Add this property
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
@@ -707,6 +762,7 @@ class OrderCard extends StatelessWidget {
     required this.item,
     required this.specialInstructions,
     required this.imagePicker,
+    required this.isEditing, // Add this to the constructor
     required this.onTap,
     required this.onDelete,
     required this.onEdit,
@@ -721,19 +777,21 @@ class OrderCard extends StatelessWidget {
         child: ListTile(
           title: Text(orderName),
           subtitle: Text(description),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: onEdit,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: onDelete,
-              ),
-            ],
-          ),
+          trailing: isEditing
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: onEdit,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: onDelete,
+                    ),
+                  ],
+                )
+              : null,
         ),
       ),
     );

@@ -5,7 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class Showlistconsumer extends StatefulWidget {
-  const Showlistconsumer({super.key});
+  final String? lid; // To receive the list ID from MyList
+
+  const Showlistconsumer({super.key, this.lid});
 
   @override
   State<Showlistconsumer> createState() => _ShowlistconsumerState();
@@ -26,8 +28,36 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
   @override
   void initState() {
     super.initState();
+    _currentLid = widget.lid; // Initialize _currentLid with the passed lid
+    _fetchListData(); // Fetch the list data when the widget initializes
   }
 
+  // Fetch list data from Firestore based on the lid
+  Future<void> _fetchListData() async {
+    if (_currentLid != null && globalUID != null) {
+      try {
+        final listDoc = await FirebaseFirestore.instance
+            .collection('Consumer')
+            .doc(globalUID!)
+            .collection('List')
+            .doc(_currentLid!)
+            .get();
+
+        if (listDoc.exists) {
+          setState(() {
+            _titleController.text = listDoc['Title'];
+          });
+        }
+      } catch (e) {
+        print("Error fetching list data: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error fetching list data.")),
+        );
+      }
+    }
+  }
+
+  // Save items to Firestore
   Future<void> saveItems(String lid, {String? itemId}) async {
     try {
       final itemNameString = _itemNameController.text.trim();
@@ -80,6 +110,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
+  // Save lists to Firestore
   Future<void> saveLists() async {
     final titleString = _titleController.text.trim();
 
@@ -120,23 +151,47 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
+  // Delete an item from Firestore
   Future<void> deleteItem(String lid, String itemId) async {
     try {
       if (globalUID != null) {
-        print(
-            "Deleting item with ID $itemId from: Consumer/$globalUID/List/$lid/Items/$itemId");
-        await FirebaseFirestore.instance
-            .collection('Consumer')
-            .doc(globalUID!)
-            .collection('List')
-            .doc(lid)
-            .collection('Items')
-            .doc(itemId)
-            .delete();
-        print("Item with ID $itemId deleted successfully.");
+        // Show confirmation dialog before deleting
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Confirm Delete"),
+              content: const Text("Are you sure you want to delete this item?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    // Delete the item if the user confirms
+                    await FirebaseFirestore.instance
+                        .collection('Consumer')
+                        .doc(globalUID!)
+                        .collection('List')
+                        .doc(lid)
+                        .collection('Items')
+                        .doc(itemId)
+                        .delete();
+                    print("Item with ID $itemId deleted successfully.");
 
-        // Update item count in the list document
-        await _updateItemCount(lid, -1);
+                    // Update item count in the list document
+                    await _updateItemCount(lid, -1);
+
+                    // Close the dialog
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Delete"),
+                ),
+              ],
+            );
+          },
+        );
       } else {
         print("Error: User not logged in (globalUID is null)");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -151,6 +206,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
+  // Update the item count in the list document
   Future<void> _updateItemCount(String lid, int change) async {
     try {
       // Get a reference to the list document
@@ -206,6 +262,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the AppBar
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -301,6 +358,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the body of the Scaffold
   Widget _buildBody() {
     return SingleChildScrollView(
       child: Column(
@@ -326,6 +384,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the title TextField
   Widget _buildTitle() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -354,6 +413,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the timestamp Text
   Widget _buildTimestamp() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -368,6 +428,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the "Add Item" button
   Widget _buildAddItemButton() {
     return Align(
       alignment: Alignment.centerRight,
@@ -388,6 +449,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the "Edit" / "Save" button
   Widget _buildEditButton() {
     return Align(
       alignment: Alignment.centerLeft,
@@ -408,6 +470,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the image widget (shown when no list is loaded)
   Widget _buildImage() {
     if (_currentLid == null) {
       return Center(
@@ -418,6 +481,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
+  // Show a dialog with item details
   void _showItemDetailsDialog(Map<String, dynamic> data) {
     showDialog(
       context: context,
@@ -455,6 +519,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build a row for item details
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -468,6 +533,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the "No items" text
   Widget _buildNoItemsText() {
     return const Center(
       child: Text(
@@ -480,6 +546,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the list of items
   Widget _buildItemsList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -536,6 +603,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Show the "Add/Edit Item" dialog
   void _showAddOrEditItemDialog({String? itemId}) {
     if (itemId != null) {
       // If editing, fetch the item data from Firestore
@@ -583,6 +651,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
+  // Show the dialog for adding or editing an item
   void _showItemDialog({String? itemId}) {
     showDialog(
       context: context,
@@ -644,6 +713,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Add or edit an item in Firestore
   void _addOrEditItem({String? itemId}) async {
     final item = {
       'Name': _itemNameController.text.trim(),
@@ -685,6 +755,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
+  // Build the "Add Picture" button
   Widget _buildAddPictureButton() {
     return ElevatedButton(
       onPressed: _pickImage,
@@ -692,6 +763,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Pick an image from the gallery
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final XFile? pickedImage =
@@ -704,6 +776,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
+  // Build a TextField widget
   Widget _buildTextField(String label, TextEditingController controller) {
     return TextField(
       controller: controller,
@@ -714,6 +787,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Save changes when editing is done
   void _saveChanges() {
     setState(() {
       _isEditing = false;
@@ -721,6 +795,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
   }
 }
 
+// Widget for displaying an order card
 class OrderCard extends StatelessWidget {
   final String orderName;
   final String description;
@@ -757,7 +832,7 @@ class OrderCard extends StatelessWidget {
         child: ListTile(
           title: Text(orderName),
           subtitle: Text(description),
-          trailing: isEditing // Conditionally render the icons
+          trailing: isEditing
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -771,7 +846,7 @@ class OrderCard extends StatelessWidget {
                     ),
                   ],
                 )
-              : null, // No trailing widget if not editing
+              : null,
         ),
       ),
     );
