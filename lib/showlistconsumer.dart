@@ -24,6 +24,10 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
 
   String? _currentLid;
   bool _isEditing = false;
+  String? _selectedFolder = 'Unclassified'; // Initialize with default
+  List<String> _folderNames = ['Unclassified'];
+  final _folderNameController =
+      TextEditingController(); // For creating new folders
 
   @override
   void initState() {
@@ -46,6 +50,8 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
         if (listDoc.exists) {
           setState(() {
             _titleController.text = listDoc['Title'];
+            _selectedFolder =
+                listDoc['folder'] as String?; // Set the initial folder value
           });
         }
       } catch (e) {
@@ -53,6 +59,35 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Error fetching list data.")),
         );
+      }
+    }
+  }
+
+  // Fetch folder names from Firestore, create "Unclassified" if none exist
+  Future<void> _fetchFolderNames() async {
+    if (globalUID != null) {
+      try {
+        final foldersSnapshot = await FirebaseFirestore.instance
+            .collection('Consumer')
+            .doc(globalUID!)
+            .collection('Folders')
+            .get();
+
+        if (foldersSnapshot.docs.isEmpty) {
+          // Create "Unclassified" folder if none exist
+          await FirebaseFirestore.instance
+              .collection('Consumer')
+              .doc(globalUID!)
+              .collection('Folders')
+              .add({'Name': 'Unclassified'});
+        }
+
+        setState(() {
+          _folderNames =
+              foldersSnapshot.docs.map((doc) => doc['Name'] as String).toList();
+        });
+      } catch (e) {
+        print('Error fetching folder names: $e');
       }
     }
   }
@@ -110,9 +145,10 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     }
   }
 
-  // Save lists to Firestore
+  // Save lists to Firestore with folder information
   Future<void> saveLists() async {
     final titleString = _titleController.text.trim();
+    final folderString = _selectedFolder; // Get selected folder
 
     if (globalUID != null) {
       if (_currentLid == null) {
@@ -127,6 +163,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
           'Title': titleString,
           'createdAt': Timestamp.now(),
           'itemCount': 0, // Initialize itemCount to 0
+          'folder': folderString, // Add folder information
         });
       } else {
         // List exists, update the existing document
@@ -135,7 +172,10 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
             .doc(globalUID!)
             .collection('List')
             .doc(_currentLid!)
-            .update({'Title': titleString});
+            .update({
+          'Title': titleString,
+          'folder': folderString, // Add folder information
+        });
       }
 
       setState(() {});
@@ -278,7 +318,10 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
           padding: const EdgeInsets.all(16.0),
           child: IconButton(
             icon: Image.asset('Momo_images/Check icon.png'),
-            onPressed: () {
+            onPressed: () async {
+              // Fetch the latest folder names before opening the dialog
+              await _fetchFolderNames();
+
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
@@ -310,15 +353,92 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        DropdownButtonFormField(
+                        // Dropdown with "Create new folder" option
+                        DropdownButtonFormField<String>(
+                          value: _selectedFolder,
                           decoration: const InputDecoration(
-                            labelText: '',
+                            labelText: 'Folder',
                             border: OutlineInputBorder(),
                           ),
-                          items: const [
-                            DropdownMenuItem(child: Text('Unclassified')),
+                          items: [
+                            ..._folderNames.map((folder) {
+                              // Existing folder names
+                              return DropdownMenuItem(
+                                value: folder,
+                                child: Text(folder),
+                              );
+                            }).toList(),
+                            DropdownMenuItem(
+                              // "Create new folder" option
+                              value: 'create_new_folder',
+                              child: const Text('Create new folder'),
+                            ),
                           ],
-                          onChanged: (value) {},
+                          onChanged: (value) {
+                            if (value == 'create_new_folder') {
+                              // Show dialog to create a new folder
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Create New Folder'),
+                                    content: TextField(
+                                      controller: _folderNameController,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Enter folder name',
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          final newFolderName =
+                                              _folderNameController.text.trim();
+                                          if (newFolderName.isNotEmpty) {
+                                            try {
+                                              // Create the new folder in Firestore
+                                              await FirebaseFirestore.instance
+                                                  .collection('Consumer')
+                                                  .doc(globalUID!)
+                                                  .collection('Folders')
+                                                  .add({'Name': newFolderName});
+
+                                              // Update the folder list
+                                              setState(() {
+                                                _folderNames.add(newFolderName);
+                                                _selectedFolder = newFolderName;
+                                              });
+
+                                              // Close the dialog
+                                              Navigator.pop(context);
+                                            } catch (e) {
+                                              print(
+                                                  'Error creating folder: $e');
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Error creating folder.'),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: const Text('Create'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } else {
+                              setState(() {
+                                _selectedFolder = value;
+                              });
+                            }
+                          },
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

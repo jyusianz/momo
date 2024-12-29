@@ -22,12 +22,47 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
 
   String? _currentLid;
   bool _isEditing = false;
+  String? _selectedFolder = 'Unclassified'; // Initialize with default
+  List<String> _folderNames = ['Unclassified'];
+  final _folderNameController =
+      TextEditingController(); // For creating new folders
 
   @override
   void initState() {
     super.initState();
+    _fetchFolderNames();
   }
 
+  // Fetch folder names from Firestore, create "Unclassified" if none exist
+  Future<void> _fetchFolderNames() async {
+    if (globalUID != null) {
+      try {
+        final foldersSnapshot = await FirebaseFirestore.instance
+            .collection('Consumer')
+            .doc(globalUID!)
+            .collection('Folders')
+            .get();
+
+        if (foldersSnapshot.docs.isEmpty) {
+          // Create "Unclassified" folder if none exist
+          await FirebaseFirestore.instance
+              .collection('Consumer')
+              .doc(globalUID!)
+              .collection('Folders')
+              .add({'Name': 'Unclassified'});
+        }
+
+        setState(() {
+          _folderNames =
+              foldersSnapshot.docs.map((doc) => doc['Name'] as String).toList();
+        });
+      } catch (e) {
+        print('Error fetching folder names: $e');
+      }
+    }
+  }
+
+  // Save items to Firestore
   Future<void> saveItems(String lid, {String? itemId}) async {
     try {
       final itemNameString = _itemNameController.text.trim();
@@ -62,7 +97,9 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
         print("Item with ID $itemIdToSave saved/updated successfully.");
 
         // Only increment when adding a new item
-        //await _updateItemCount(lid, 1);
+        if (itemId == null) {
+          await _updateItemCount(lid, 1);
+        }
       } else {
         print("Error: User not logged in (globalUID is null)");
         ScaffoldMessenger.of(context).showSnackBar(
@@ -78,8 +115,10 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
+  // Save lists to Firestore with folder information
   Future<void> saveLists() async {
     final titleString = _titleController.text.trim();
+    final folderString = _selectedFolder; // Get selected folder
 
     if (globalUID != null) {
       if (_currentLid == null) {
@@ -94,6 +133,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           'Title': titleString,
           'createdAt': Timestamp.now(),
           'itemCount': 0, // Initialize itemCount to 0
+          'folder': folderString, // Add folder information
         });
       } else {
         // List exists, update the existing document
@@ -102,7 +142,10 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
             .doc(globalUID!)
             .collection('List')
             .doc(_currentLid!)
-            .update({'Title': titleString});
+            .update({
+          'Title': titleString,
+          'folder': folderString, // Add folder information
+        });
       }
 
       setState(() {});
@@ -118,6 +161,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
+  // Delete an item from Firestore
   Future<void> deleteItem(String lid, String itemId) async {
     try {
       if (globalUID != null) {
@@ -172,6 +216,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
+  // Update the item count in the list document
   Future<void> _updateItemCount(String lid, int change) async {
     try {
       // Get a reference to the list document
@@ -184,14 +229,14 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       // Use a transaction to ensure atomicity
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         DocumentSnapshot listDoc = await transaction.get(listRef);
-        int currentCount = listDoc['itemCount'] ?? 0;
-        transaction.update(listRef, {'itemCount': currentCount + change});
 
         // Check if the document exists
         if (!listDoc.exists) {
           print("List document $lid does not exist!"); // Debugging log
           return;
         }
+
+        int currentCount = listDoc['itemCount'] ?? 0;
         int newCount = currentCount + change;
 
         print(
@@ -227,6 +272,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the AppBar
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -242,7 +288,10 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           padding: const EdgeInsets.all(16.0),
           child: IconButton(
             icon: Image.asset('Momo_images/Check icon.png'),
-            onPressed: () {
+            onPressed: () async {
+              // Fetch the latest folder names before opening the dialog
+              await _fetchFolderNames();
+
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
@@ -274,15 +323,92 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        DropdownButtonFormField(
+                        // Dropdown with "Create new folder" option
+                        DropdownButtonFormField<String>(
+                          value: _selectedFolder,
                           decoration: const InputDecoration(
-                            labelText: '',
+                            labelText: 'Folder',
                             border: OutlineInputBorder(),
                           ),
-                          items: const [
-                            DropdownMenuItem(child: Text('Unclassified')),
+                          items: [
+                            ..._folderNames.map((folder) {
+                              // Existing folder names
+                              return DropdownMenuItem(
+                                value: folder,
+                                child: Text(folder),
+                              );
+                            }).toList(),
+                            DropdownMenuItem(
+                              // "Create new folder" option
+                              value: 'create_new_folder',
+                              child: const Text('Create new folder'),
+                            ),
                           ],
-                          onChanged: (value) {},
+                          onChanged: (value) {
+                            if (value == 'create_new_folder') {
+                              // Show dialog to create a new folder
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Create New Folder'),
+                                    content: TextField(
+                                      controller: _folderNameController,
+                                      decoration: const InputDecoration(
+                                        hintText: 'Enter folder name',
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          final newFolderName =
+                                              _folderNameController.text.trim();
+                                          if (newFolderName.isNotEmpty) {
+                                            try {
+                                              // Create the new folder in Firestore
+                                              await FirebaseFirestore.instance
+                                                  .collection('Consumer')
+                                                  .doc(globalUID!)
+                                                  .collection('Folders')
+                                                  .add({'Name': newFolderName});
+
+                                              // Update the folder list
+                                              setState(() {
+                                                _folderNames.add(newFolderName);
+                                                _selectedFolder = newFolderName;
+                                              });
+
+                                              // Close the dialog
+                                              Navigator.pop(context);
+                                            } catch (e) {
+                                              print(
+                                                  'Error creating folder: $e');
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Error creating folder.'),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: const Text('Create'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } else {
+                              setState(() {
+                                _selectedFolder = value;
+                              });
+                            }
+                          },
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -322,6 +448,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the body of the Scaffold
   Widget _buildBody() {
     return SingleChildScrollView(
       child: Column(
@@ -347,6 +474,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the title TextField
   Widget _buildTitle() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -375,6 +503,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the timestamp Text
   Widget _buildTimestamp() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -389,6 +518,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the "Add Item" button
   Widget _buildAddItemButton() {
     return Align(
       alignment: Alignment.centerRight,
@@ -409,6 +539,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the "Edit" / "Save" button
   Widget _buildEditButton() {
     return Align(
       alignment: Alignment.centerLeft,
@@ -429,6 +560,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the image widget (shown when no list is loaded)
   Widget _buildImage() {
     if (_currentLid == null) {
       return Center(
@@ -439,6 +571,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
+  // Show a dialog with item details
   void _showItemDetailsDialog(Map<String, dynamic> data) {
     showDialog(
       context: context,
@@ -476,6 +609,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build a row for item details
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -489,6 +623,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the "No items" text
   Widget _buildNoItemsText() {
     return const Center(
       child: Text(
@@ -501,6 +636,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Build the list of items
   Widget _buildItemsList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -557,6 +693,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Show the "Add/Edit Item" dialog
   void _showAddOrEditItemDialog({String? itemId}) {
     if (itemId != null) {
       // If editing, fetch the item data from Firestore
@@ -604,6 +741,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
+  // Show the dialog for adding or editing an item
   void _showItemDialog({String? itemId}) {
     showDialog(
       context: context,
@@ -665,6 +803,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Add or edit an item in Firestore
   void _addOrEditItem({String? itemId}) async {
     final item = {
       'Name': _itemNameController.text.trim(),
@@ -692,11 +831,12 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
             .collection('Consumer')
             .doc(globalUID!)
             .collection('List')
-            .doc(_currentLid)
+            .doc(_currentLid!)
             .collection('Items')
             .add(item);
 
         print("New item added with ID: ${newItemRef.id}"); // Debugging log
+
         // Increment item count
         await _updateItemCount(_currentLid!, 1);
       } else {
@@ -705,6 +845,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
+  // Build the "Add Picture" button
   Widget _buildAddPictureButton() {
     return ElevatedButton(
       onPressed: _pickImage,
@@ -712,6 +853,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Pick an image from the gallery
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final XFile? pickedImage =
@@ -724,6 +866,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
+  // Build a TextField widget
   Widget _buildTextField(String label, TextEditingController controller) {
     return TextField(
       controller: controller,
@@ -734,6 +877,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     );
   }
 
+  // Save changes when editing is done
   void _saveChanges() {
     setState(() {
       _isEditing = false;
@@ -741,6 +885,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   }
 }
 
+// Widget for displaying an order card
 class OrderCard extends StatelessWidget {
   final String orderName;
   final String description;
