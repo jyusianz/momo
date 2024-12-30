@@ -8,11 +8,44 @@ class Chatrider extends StatefulWidget {
 }
 
 class _ChatriderState extends State<Chatrider> {
+  // List of chats
+  final List<Map<String, dynamic>> chats = [
+    {
+      'avatar': 'Momo_images/Juan Deck.png',
+      'name': 'Juan Deck',
+      'message': 'Good morning, did you sleep well?',
+      'time': 'Today',
+      'notification': 1
+    },
+    {
+      'avatar': 'Momo_images/Juliet.png',
+      'name': 'Juliet',
+      'message': 'How is it going?',
+      'time': '17/6',
+      'notification': 0
+    },
+    {
+      'avatar': 'Momo_images/Romeo.png',
+      'name': 'Romeo',
+      'message': 'Aight, noted',
+      'time': '17/6',
+      'notification': 1
+    },
+  ];
+
+  String searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
+    // Filtered chat list based on search query
+    final filteredChats = chats
+        .where((chat) =>
+            chat['name'].toLowerCase().contains(searchQuery.toLowerCase()))
+        .toList();
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -23,76 +56,73 @@ class _ChatriderState extends State<Chatrider> {
             child: Image.asset('Momo_images/back.png', height: 30, width: 30),
           ),
         ),
-        centerTitle: true,
-        title: Image.asset(
-          'Momo_images/momowhite.png',
-          height: 80,
-          width: 200,
-        ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            color: Colors.green,
+            color: const Color.fromARGB(255, 247, 247, 247),
             width: double.infinity,
             padding: const EdgeInsets.all(20.0),
             child: const Text(
-              "Chats",
+              "Messages",
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: Color.fromARGB(255, 17, 17, 17),
               ),
             ),
           ),
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search for message',
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.asset(
+                    'Momo_images/Vector.png',
+                    height: 30,
+                    width: 30,
+                  ),
+                ),
+                filled: true,
+                fillColor: const Color.fromARGB(255, 240, 240, 240),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+
           Expanded(
             child: Container(
               color: Colors.white,
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GestureDetector(
+                  children: filteredChats.map((chat) {
+                    return GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(context, '/messengerrider',
-                            arguments: "Juan Deck");
+                            arguments: chat['name']);
                       },
-                      child: const ChatCard(
-                        avatar: 'Momo_images/Juan Deck.png',
-                        name: "Juan Deck",
-                        message: "Good morning, did you sleep well?",
-                        time: "Today",
-                        notification: 1,
+                      child: ChatCard(
+                        avatar: chat['avatar'],
+                        name: chat['name'],
+                        message: chat['message'],
+                        time: chat['time'],
+                        notification: chat['notification'],
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/chatDetail',
-                            arguments: "Juliet");
-                      },
-                      child: const ChatCard(
-                        avatar: 'Momo_images/Juliet.png',
-                        name: "Juliet",
-                        message: "How is it going?",
-                        time: "17/6",
-                        notification: 0,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/chatDetail',
-                            arguments: "Romeo");
-                      },
-                      child: const ChatCard(
-                        avatar: 'Momo_images/Romeo.png',
-                        name: "Romeo",
-                        message: "Aight, noted",
-                        time: "17/6",
-                        notification: 1,
-                      ),
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
               ),
             ),

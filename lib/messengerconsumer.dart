@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -36,84 +36,70 @@ class Messengerconsumer extends StatefulWidget {
 }
 
 class _MessengerconsumerState extends State<Messengerconsumer> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Momo Chat',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Momo Chat'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
   final List<Map<String, dynamic>> _messages = [];
-
   final TextEditingController _controller = TextEditingController();
 
   void _sendMessage(String message) {
-    if (message.isEmpty) return;
+    if (message.trim().isEmpty) return; // Prevent sending empty messages
     setState(() {
-      _messages.add({'message': message, 'isSent': true});
+      _messages.add({'message': message.trim(), 'isSent': true});
     });
-    _controller.clear();
+    _controller.clear(); // Clear the text field after sending
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Image.asset('Momo_images/back.png', height: 30, width: 30),
-          onPressed: () {
-            Navigator.of(context, rootNavigator: true).pop();
-          },
-        ),
+        automaticallyImplyLeading: false,
+        toolbarHeight: 70,
+        backgroundColor: const Color.fromARGB(255, 250, 250, 250),
+        elevation: 0,
         title: Row(
           children: [
-            Image.asset(
-              'Momo_images/momowhite.png', // Replace with your actual image path
-              height: 30,
+            IconButton(
+              icon: Image.asset('Momo_images/back.png', height: 30, width: 30),
+              onPressed: () {
+                Navigator.pop(context); // Back button functionality
+              },
             ),
             const SizedBox(width: 10),
-            const Text(
-              'MOMO',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+            CircleAvatar(
+              backgroundImage: AssetImage('Momo_images/Juan_Deck.png'),
+              radius: 20,
             ),
             const SizedBox(width: 10),
-            const Text(
-              '• Online',
-              style: TextStyle(
-                fontSize: 14,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Rider',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  'Online',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-        backgroundColor: Colors.green[300],
       ),
       body: Container(
-        color: Colors.green[100],
+        color: const Color.fromARGB(255, 251, 252, 251),
         child: Column(
           children: [
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
-                itemCount: _messages.length,
+                itemCount: _messages.length, // Dynamic message count
                 itemBuilder: (context, index) {
                   final message = _messages[index];
                   return ChatMessage(
@@ -125,23 +111,46 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: const InputDecoration(
-                        hintText: 'Type your message...',
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        decoration: const InputDecoration(
+                          hintText: 'Write a message...',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 10,
+                            horizontal: 20,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      _sendMessage(_controller.text);
-                    },
-                    icon: const Icon(Icons.send),
-                  ),
-                ],
+                    IconButton(
+                      onPressed: () {
+                        _sendMessage(_controller.text); // Call _sendMessage
+                      },
+                      icon: Image.asset(
+                        'Momo_images/send.png',
+                        height: 30,
+                        width: 30,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -165,23 +174,32 @@ class ChatMessage extends StatelessWidget {
         mainAxisAlignment:
             isSent ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          if (isSent) const SizedBox(width: 80),
           if (!isSent) const SizedBox(width: 20),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: isSent ? Colors.green[300] : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              color: isSent
+                  ? const Color.fromARGB(255, 40, 146, 114)
+                  : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               message,
               style: TextStyle(
                 color: isSent ? Colors.white : Colors.black,
+                fontSize: 16,
               ),
             ),
           ),
           if (isSent) const SizedBox(width: 20),
-          if (!isSent) const SizedBox(width: 80),
         ],
       ),
     );
