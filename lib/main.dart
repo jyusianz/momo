@@ -46,6 +46,8 @@ import 'package:food/Listrider2ongo.dart';
 import 'package:food/orderriderupdate.dart';
 import 'package:food/orderrecieptrider.dart';
 import 'package:food/folderpage.dart';
+import 'package:food/orderConfirmationPage1.dart';
+import 'package:food/orderConfirmationPage2.dart';
 import 'utils/user.dart';
 
 void main() async {
@@ -118,6 +120,10 @@ class MomoApp extends StatelessWidget {
         '/orderrecieptrider': (context) => const Orderrecieptrider(),
         '/showlistconsumer': (context) => const Showlistconsumer(),
         '/folderpage': (context) => const FolderPage(folderName: 'Unknown'),
+        '/orderConfirmationPage1': (context) =>
+            const OrderConfirmationPage1(orderId: 'orderId'),
+        '/orderConfirmationPage2': (context) =>
+            const OrderConfirmationPage2(orderId: 'orderId'),
       },
     );
   }

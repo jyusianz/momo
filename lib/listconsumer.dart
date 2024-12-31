@@ -23,17 +23,25 @@ class _ListconsumerState extends State<Listconsumer>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Image.asset(
-            'Momo_images/back.png',
-            width: 30,
-            height: 30,
+        automaticallyImplyLeading: false, // Prevents the default back button
+        title: const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '\n', // Add an empty line
+              ),
+              TextSpan(
+                text: '\tMy Orders', // Add tab and the actual text
+                style: TextStyle(
+                  fontSize: 30, // Adjust font size
+                  fontWeight: FontWeight.bold, // Make it bold
+                  color: Colors.black, // Optional: change text color
+                ),
+              ),
+            ],
           ),
+          textAlign: TextAlign.start, // Optional: Align text to the start
         ),
-        title: const Text('My Orders'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -115,7 +123,8 @@ class OrderCard extends StatelessWidget {
   final String price;
   final String imagePath;
 
-  const OrderCard({super.key, 
+  const OrderCard({
+    super.key,
     required this.orderNumber,
     required this.date,
     required this.estimatedDelivery,

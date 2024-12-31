@@ -47,35 +47,32 @@ class _ChatconsumerState extends State<Chatconsumer> {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Image.asset('Momo_images/back.png', height: 30, width: 30),
+        automaticallyImplyLeading: false,
+        title: const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '\n', // Add an empty line
+              ),
+              TextSpan(
+                text: '\t\tMessages', // Add tab and the actual text
+                style: TextStyle(
+                  fontSize: 28, // Adjust font size
+                  fontWeight: FontWeight.bold, // Make it bold
+                  color: Colors.black, // Optional: change text color
+                ),
+              ),
+            ],
           ),
+          textAlign: TextAlign.start, // Optional: Align text to the start
         ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            color: const Color.fromARGB(255, 247, 247, 247),
-            width: double.infinity,
-            padding: const EdgeInsets.all(20.0),
-            child: const Text(
-              "Messages",
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-                color: Color.fromARGB(255, 17, 17, 17),
-              ),
-            ),
-          ),
           // Search Bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
             child: TextField(
               onChanged: (value) {
                 setState(() {

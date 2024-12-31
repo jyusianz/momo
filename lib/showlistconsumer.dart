@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:food/firebase/firebase_auth_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'orderConfirmationPage1.dart'; // Import the new page
 
 class Showlistconsumer extends StatefulWidget {
   final String? lid; // To receive the list ID from MyList
@@ -299,6 +300,8 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     return Scaffold(
       appBar: _buildAppBar(context),
       body: _buildBody(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: _buildOrderThisListButton(), // Add the button here
     );
   }
 
@@ -478,29 +481,42 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
-  // Build the body of the Scaffold
+// Build the body of the Scaffold
   Widget _buildBody() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTitle(),
-          _buildTimestamp(),
-          const SizedBox(height: 6.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildAddItemButton(),
-              _buildEditButton(),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          // Wrap the content in Expanded
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTitle(),
+                _buildTimestamp(),
+                const SizedBox(height: 6.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildAddItemButton(),
+                    _buildEditButton(),
+                  ],
+                ),
+                const SizedBox(height: 16.0),
+                _buildImage(),
+                const SizedBox(height: 20),
+                if (_currentLid != null)
+                  SizedBox(
+                    // Use SizedBox with a fixed height for the ListView
+                    height: 200, // Adjust the height as needed
+                    child: _buildItemsList(),
+                  ),
+                const SizedBox(height: 150),
+              ],
+            ),
           ),
-          const SizedBox(height: 16.0),
-          _buildImage(),
-          const SizedBox(height: 20),
-          _currentLid != null ? _buildItemsList() : _buildNoItemsText(),
-          const SizedBox(height: 150),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -666,6 +682,100 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
     );
   }
 
+  // Build the "Order This List" button as a floating action button
+  Widget _buildOrderThisListButton() {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width, // Make it screen width
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.black,
+        ),
+        onPressed: () async {
+          if (_currentLid != null && globalUID != null) {
+            try {
+              // 1. Fetch all items from the list
+              final itemsSnapshot = await FirebaseFirestore.instance
+                  .collection('Consumer')
+                  .doc(globalUID!)
+                  .collection('List')
+                  .doc(_currentLid!)
+                  .collection('Items')
+                  .get();
+
+              // 2. Fetch user data (first name, last name, phone number)
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('Consumer')
+                  .doc(globalUID!)
+                  .get();
+              final firstName = userDoc.get('First Name');
+              final lastName = userDoc.get('Last Name');
+              final mobileNumber = userDoc.get('Mobile Number');
+
+              // 3. Create a new document in the "Orders" collection
+              final newOrderRef =
+                  await FirebaseFirestore.instance.collection('Orders').add({
+                'consumerUID': globalUID,
+                'listID': _currentLid,
+                'isPlaced': false,
+                'firstName': firstName, // Add first name to order document
+                'lastName': lastName, // Add last name to order document
+                'mobileNumber':
+                    mobileNumber, // Add phone number to order document
+                // Add other order details here (replace the comment)
+                'OrderId': '', // You might want to generate a unique ID here
+                'userId': globalUID,
+                'orderedAt': Timestamp.now(),
+                'riderId': '',
+                'isTaken': false,
+                'deliveryAddress': '',
+                'market': '',
+                'itemCount': itemsSnapshot.docs.length,
+                'estTotal': '',
+              });
+
+              // 4. Copy items to the "Items" subcollection of the order, and add srPrice and totalPrice
+              for (var itemDoc in itemsSnapshot.docs) {
+                // Get the item data as a Map
+                Map<String, dynamic> itemData =
+                    itemDoc.data() as Map<String, dynamic>;
+
+                // Add the new fields to the itemData map
+                itemData['srPrice'] = 0; // Initially set srPrice to 0
+                itemData['totalPrice'] = 0; // Initially set totalPrice to 0
+
+                // Add the updated item data to the subcollection
+                await newOrderRef.collection('Items').add(itemData);
+              }
+
+              // 5. Navigate to OrderConfirmationPage1
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderConfirmationPage1(
+                    orderId: newOrderRef.id,
+                  ),
+                ),
+              );
+            } catch (e) {
+              print("Error creating order: $e");
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Error creating order.")),
+              );
+            }
+          } else {
+            // Handle cases where _currentLid or globalUID is null
+            print("Error: Cannot create order.");
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Error creating order.")),
+            );
+          }
+        },
+        child: const Text("Order This List"),
+      ),
+    );
+  }
+
   // Build the list of items
   Widget _buildItemsList() {
     return StreamBuilder<QuerySnapshot>(
@@ -690,8 +800,8 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
         }
 
         return ListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: false,
+          //physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.docs.map((DocumentSnapshot document) {
             Map<String, dynamic> data =
                 document.data()! as Map<String, dynamic>;
