@@ -337,11 +337,11 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                                 value: folder,
                                 child: Text(folder),
                               );
-                            }).toList(),
-                            DropdownMenuItem(
+                            }),
+                            const DropdownMenuItem(
                               // "Create new folder" option
                               value: 'create_new_folder',
-                              child: const Text('Create new folder'),
+                              child: Text('Create new folder'),
                             ),
                           ],
                           onChanged: (value) {

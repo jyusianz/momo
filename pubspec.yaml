@@ -44,78 +44,32 @@ dependencies:
   firebase_auth_mocks: ^0.14.1
   cloud_firestore: ^5.4.4
   intl: ^0.20.1
+  flutter_stripe: ^11.3.0
+  dio: ^5.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  image_picker: ^0.8.6
+  image_picker: ^1.1.2
   
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
-
   assets:
-  - Momo_images/Rider.png
-  - Momo_images/Consumer.png
-  - Momo_images/Momo logo.png
-  - Momo_images/Grocery.png
-  - Momo_images/momowhite.png
-  - Momo_images/Google.png
-  - Momo_images/Facebook.png
-  - Momo_images/back.png
-  - Momo_images/Account.png
-  - Momo_images/Expand Arrow.png
-  - Momo_images/Photo Gallery.png
-  - Momo_images/egg.png
-  - Momo_images/bread.png
-  - Momo_images/home.png
-  - Momo_images/chat.png
-  - Momo_images/My List.png
-  - Momo_images/nestle.png
-  - Momo_images/profile.png
-  - Momo_images/iPhone-status-bar(upper).png
-  - Momo_images/Juan Deck.png
-  - Momo_images/Juliet.png
-  - Momo_images/Romeo.png
-  - Momo_images/fluent-arrow.png
-  - Momo_images/Card Payment.png
-  - Momo_images/Help.png
-  - Momo_images/Settings.png
-  - Momo_images/Place Marker.png
-  - Momo_images/User.png
-  - Momo_images/check.png
-  - Momo_images/gcash.png
-  - Momo_images/mdi_account-cash.png
-  - Momo_images/solar_notification.png
-  - Momo_images/ph_key.png
-  - Momo_images/ic_outline-delete.png
-  - Momo_images/Vector.png
-  - Momo_images/No list.png
-  - Momo_images/check icon.png
-  - Momo_images/find.png
-  - Momo_images/Notification icon.png
-  - Momo_images/gcash cat.png
-  - Momo_images/Invisible.png
-  - Momo_images/send.png   
+  - Momo_images/
 
- 
- 
+  uses-material-design: true
 
-
-  #uses-material-design: true
-
-   #assets:
-   #- 'assets/images/Momo logo.png'
-
+  
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

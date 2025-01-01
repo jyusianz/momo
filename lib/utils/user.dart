@@ -77,15 +77,15 @@ class User extends StatelessWidget {
                                           backgroundColor: Colors.white),
                                       child: Image.asset(
                                         'Momo_images/Consumer.png',
-                                        width: 100,
-                                        height: 100,
+                                        width: 80,
+                                        height: 80,
                                       ),
                                     ),
                                     const SizedBox(height: 15),
                                     const Text(
                                       'As Consumer',
                                       style: TextStyle(
-                                          color: Colors.white, fontSize: 20),
+                                          color: Colors.white, fontSize: 15),
                                     )
                                   ],
                                 ),
@@ -105,15 +105,15 @@ class User extends StatelessWidget {
                                           backgroundColor: Colors.white),
                                       child: Image.asset(
                                         'Momo_images/Rider.png',
-                                        width: 100,
-                                        height: 100,
+                                        width: 80,
+                                        height: 80,
                                       ),
                                     ),
                                     const SizedBox(height: 15),
                                     const Text(
                                       'As Rider',
                                       style: TextStyle(
-                                          color: Colors.white, fontSize: 20),
+                                          color: Colors.white, fontSize: 15),
                                     )
                                   ],
                                 )

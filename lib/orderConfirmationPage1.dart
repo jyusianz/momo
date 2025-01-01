@@ -52,7 +52,7 @@ class _OrderConfirmationPage1State extends State<OrderConfirmationPage1> {
         'isPlaced': false,
         'deliveryAddress': '',
         'fullName': '',
-        'phoneNumber': '',
+        'isCompleted': false,
         'market': '',
         'itemCount': itemCount, // Set the correct itemCount
         'estTotal': '',

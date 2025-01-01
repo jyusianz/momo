@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:food/consts.dart';
 import 'package:food/firebase_options.dart';
 import 'package:food/showlistconsumer.dart';
 import 'package:food/utils/rider.dart';
@@ -48,17 +49,27 @@ import 'package:food/orderrecieptrider.dart';
 import 'package:food/folderpage.dart';
 import 'package:food/orderConfirmationPage1.dart';
 import 'package:food/orderConfirmationPage2.dart';
+import 'package:food/orderConfirmationPage3.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'utils/user.dart';
 
-void main() async {
+Future<void> main() async {
+  // Initialize Flutter bindings once
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
     print('Firebase initialized successfully');
   } catch (e) {
-    print('Firebase could not initalize');
+    print('Firebase could not initialize: $e');
   }
+
+  // Initialize Stripe
+  Stripe.publishableKey = stripePublishableKey;
+  await Stripe.instance.applySettings();
+
   runApp(const MomoApp());
 }
 
@@ -70,7 +81,8 @@ class MomoApp extends StatelessWidget {
     return MaterialApp(
       title: 'Momo App',
       debugShowCheckedModeBanner: false,
-      home: const Home(),
+      // Change initial route to a screen that definitely exists
+      home: const Home(), // Assuming WelcomeScreen exists from your imports
       routes: {
         '/user': (context) => const User(),
         '/rider': (context) => const Rider(),
@@ -80,8 +92,7 @@ class MomoApp extends StatelessWidget {
         '/signin_rider': (context) => const Signin_rider(),
         '/signin_consumer': (context) => const Signin_consumer(),
         '/verificationRider': (context) => const VerificationRider(),
-        '/verificationConsumer': (context) =>
-            const VerificationConsumer(), // Placeholder const VerificationConsumer(),
+        '/verificationConsumer': (context) => const VerificationConsumer(),
         '/completeprofileRider': (context) => const CompleteprofileRider(),
         '/riderHome': (context) => const RiderHome(),
         '/listrider': (context) => const Listrider(),
@@ -89,7 +100,7 @@ class MomoApp extends StatelessWidget {
         '/riderprofile': (context) => const Riderprofile(),
         '/orderdetsrider': (context) => const Orderdetsrider(),
         '/completeprofileconsumer': (context) =>
-            const CompleteProfileConsumer(), // Placeholder
+            const CompleteProfileConsumer(),
         '/editprofilerider': (context) => const Editprofilerider(),
         '/manageaddressrider': (context) => const Manageaddressrider(),
         '/paymentmethodrider': (context) => const Paymentmethodrider(),
@@ -119,11 +130,14 @@ class MomoApp extends StatelessWidget {
         '/orderriderupdate': (context) => const Orderriderupdate(),
         '/orderrecieptrider': (context) => const Orderrecieptrider(),
         '/showlistconsumer': (context) => const Showlistconsumer(),
-        '/folderpage': (context) => const FolderPage(folderName: 'Unknown'),
+        // Modified these routes to handle parameters properly
+        '/folderpage': (context) => const FolderPage(folderName: ''),
         '/orderConfirmationPage1': (context) =>
-            const OrderConfirmationPage1(orderId: 'orderId'),
+            const OrderConfirmationPage1(orderId: ''),
         '/orderConfirmationPage2': (context) =>
-            const OrderConfirmationPage2(orderId: 'orderId'),
+            const OrderConfirmationPage2(orderId: ''),
+        '/orderConfirmationPage3': (context) =>
+            const OrderConfirmationPage3(orderId: ''),
       },
     );
   }

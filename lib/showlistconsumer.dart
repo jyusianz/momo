@@ -370,11 +370,11 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                                 value: folder,
                                 child: Text(folder),
                               );
-                            }).toList(),
-                            DropdownMenuItem(
+                            }),
+                            const DropdownMenuItem(
                               // "Create new folder" option
                               value: 'create_new_folder',
-                              child: const Text('Create new folder'),
+                              child: Text('Create new folder'),
                             ),
                           ],
                           onChanged: (value) {
@@ -737,8 +737,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
               // 4. Copy items to the "Items" subcollection of the order, and add srPrice and totalPrice
               for (var itemDoc in itemsSnapshot.docs) {
                 // Get the item data as a Map
-                Map<String, dynamic> itemData =
-                    itemDoc.data() as Map<String, dynamic>;
+                Map<String, dynamic> itemData = itemDoc.data();
 
                 // Add the new fields to the itemData map
                 itemData['srPrice'] = 0; // Initially set srPrice to 0

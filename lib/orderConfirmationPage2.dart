@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:food/services/stripe_service.dart';
+import 'package:food/orderConfirmationPage3.dart';
 
 class OrderConfirmationPage2 extends StatefulWidget {
   final String orderId;
@@ -26,6 +27,7 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
   String? _firstName;
   String? _lastName;
   String? _phoneNumber;
+  double? _total;
 
   @override
   void initState() {
@@ -304,6 +306,8 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
         // Update the order document with the new total and selected values
         _updateOrderDetails(total);
 
+        _total = total;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -482,17 +486,14 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
       Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
       final itemId = document.id;
       data['itemId'] = itemId;
-
       // Get the estimated price for this item
       double estimatedPrice = await getEstimatedPrice(data, marketName);
       double itemTotal = estimatedPrice * data['Quantity'];
-
       // Update the srPrice and totalPrice in the Firestore document
       await document.reference.update({
         'srPrice': estimatedPrice,
         'totalPrice': itemTotal,
       });
-
       tiles.add(
         Card(
           child: ListTile(
@@ -524,13 +525,11 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
                     "Special Instructions: ${data['Special Instructions']}",
                     style: const TextStyle(fontSize: 12),
                   ),
-
                 // Display estimated price (srPrice)
                 Text(
                   "Estimated Price: \$${estimatedPrice.toStringAsFixed(2)}",
                   style: const TextStyle(fontSize: 14),
                 ),
-
                 // Display total price for this item (totalPrice)
                 Text(
                   "Item Total: \$${itemTotal.toStringAsFixed(2)}",
@@ -549,7 +548,7 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
   }
 
   // Calculate and display the estimated total price
-  Widget _buildEstimatedTotalPrice() {
+  /*Widget _buildEstimatedTotalPrice() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('Orders')
@@ -591,8 +590,9 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
         );
       },
     );
-  }
+  }*/
 
+  /*
   // Helper function to calculate total price asynchronously
   Future<double> _calculateTotalPrice(
       List<QueryDocumentSnapshot> docs, String marketName) async {
@@ -603,7 +603,7 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
           data, marketName); // Await getEstimatedPrice with both arguments
     }
     return totalPrice;
-  }
+  }*/
 
   // Fetch products for a given market from Firestore
   Future<List<Map<String, dynamic>>> fetchMarketProducts(
@@ -620,9 +620,8 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
           .get();
 
       // Convert the query result to a list of maps
-      List<Map<String, dynamic>> products = querySnapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
+      List<Map<String, dynamic>> products =
+          querySnapshot.docs.map((doc) => doc.data()).toList();
 
       return products;
     } catch (e) {
@@ -667,11 +666,15 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
     // 2. Find the matching product in the marketProducts list
     for (var product in marketProducts) {
       if (product['Product Name'] == itemData['Name']) {
-        return product['SRPrice'];
+        if (product['SRPrice'] is int) {
+          return (product['SRPrice'] as int).toDouble();
+        } else {
+          return product['SRPrice'] as double; // Already a double
+        }
       }
     }
 
-    return 0; // Return 0 if no match is found
+    return 0.0; // Return 0 if no match is found
   }
 
   // Show the dialog to edit the name
@@ -791,6 +794,96 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
     return Scaffold(
       appBar: _buildAppBar(context),
       body: _buildBody(),
+      bottomNavigationBar: Container(
+        width: double.infinity, // Make the button the same width as the screen
+        color: Colors.green, // Set the button color to green
+        child: TextButton(
+          onPressed: () async {
+            if (_addressController.text.isEmpty || _selectedMarket == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text("Please fill in all required fields.")),
+              );
+              return;
+            }
+
+            final paymentSuccess =
+                await StripeService.instance.makePayment(_total!);
+            if (paymentSuccess) {
+              print("Payment successful");
+
+              await FirebaseFirestore.instance
+                  .collection('Orders')
+                  .doc(widget.orderId)
+                  .update({'isPlaced': true});
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      OrderConfirmationPage3(orderId: widget.orderId),
+                ),
+              );
+            } else {
+              print('Payment failed.');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text("Payment failed. Please try again.")),
+              );
+            }
+
+            /*
+            //bool paymentSuccess = false;
+
+            // Payment Process
+            //try {
+            //print("Initiating payment...");
+            await StripeService.instance.makePayment(_total!);
+            //paymentSuccess = true;
+            //print("Payment successful");
+            /*} catch (e) {
+              print('Payment error: $e');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text("Payment failed. Please try again.")),
+              );
+              return;
+            }*/
+
+            // Database Update
+            //if (paymentSuccess) {
+            //try {
+            //print("Updating Firestore...");
+            await FirebaseFirestore.instance
+                .collection('Orders')
+                .doc(widget.orderId)
+                .update({'isPlaced': true});
+            //print("Firestore updated");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    OrderConfirmationPage3(orderId: widget.orderId),
+              ),
+            );
+            /* } catch (e) {
+              print('Firestore update failed: $e');
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Failed to update database.")),
+              );
+            }*/
+            //}
+            */
+          },
+          child: const Text(
+            "Pay Now",
+            style: TextStyle(
+              color: Colors.black, // Set font color to black
+              fontWeight: FontWeight.w500, // Medium weight
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

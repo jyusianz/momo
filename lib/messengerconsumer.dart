@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -64,14 +64,14 @@ class _MessengerconsumerState extends State<Messengerconsumer> {
               },
             ),
             const SizedBox(width: 10),
-            CircleAvatar(
+            const CircleAvatar(
               backgroundImage: AssetImage('Momo_images/Juan_Deck.png'),
               radius: 20,
             ),
             const SizedBox(width: 10),
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'Rider',
                   style: TextStyle(

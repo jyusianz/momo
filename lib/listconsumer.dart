@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:food/orderConfirmationPage3.dart';
+import 'package:intl/intl.dart';
+import 'package:food/orderConfirmationPage3.dart';
 
 class Listconsumer extends StatefulWidget {
   const Listconsumer({super.key});
@@ -52,34 +56,11 @@ class _ListconsumerState extends State<Listconsumer>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
+        children: [
           // Ongoing Orders
-          Center(
-            child: Text('No ongoing orders.'),
-          ),
+          _buildOngoingOrdersStream(),
           // Order History
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                OrderCard(
-                  orderNumber: '123456',
-                  date: '25 - May - 2024, 1:00 PM',
-                  estimatedDelivery: 'Est. Delivery on 28, May',
-                  items: '4 items',
-                  price: '1165.00',
-                  imagePath: 'Momo_images/egg.png',
-                ),
-                OrderCard(
-                  orderNumber: '789012',
-                  date: '27 - May - 2024, 3:00 PM',
-                  estimatedDelivery: 'Est. Delivery on 30, May',
-                  items: '2 items',
-                  price: '550.00',
-                  imagePath: 'Momo_images/nestle.png',
-                ),
-              ],
-            ),
-          ),
+          _buildOrderHistoryStream(), // Replace with stream builder
         ],
       ),
       bottomNavigationBar: Row(
@@ -95,7 +76,7 @@ class _ListconsumerState extends State<Listconsumer>
             onTap: () {
               Navigator.pushNamed(context, '/listconsumer');
             },
-            child: Image.asset('Momo_images/My list.png'),
+            child: Image.asset('Momo_images/orders.png'),
           ),
           InkWell(
             onTap: () {
@@ -115,41 +96,131 @@ class _ListconsumerState extends State<Listconsumer>
   }
 }
 
+// Build the stream of ongoing orders from Firestore
+Widget _buildOngoingOrdersStream() {
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance
+        .collection('Orders')
+        .where('isPlaced', isEqualTo: true)
+        .where('isCompleted', isEqualTo: false)
+        .snapshots(),
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error}');
+      }
+
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        return const Center(
+          child: Text("No ongoing orders."),
+        );
+      }
+
+      return ListView(
+        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+          Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+
+          return OrderCard(
+            orderNumber: document.id,
+            date: DateFormat('yyyy-MM-dd HH:mm')
+                .format(data['orderedAt'].toDate()),
+            items: '${data['itemCount']} items',
+            price: data['estTotal'].toStringAsFixed(2),
+            onTap: () {
+              // Navigate to OrderConfirmationPage3 and pass the order ID
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      OrderConfirmationPage3(orderId: document.id),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      );
+    },
+  );
+}
+
+// Build the stream of order history from Firestore
+Widget _buildOrderHistoryStream() {
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance
+        .collection('Orders')
+        .where('isPlaced', isEqualTo: false)
+        .where('isCompleted', isEqualTo: true)
+        .snapshots(),
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return Text('Error: ${snapshot.error}');
+      }
+
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        return const Center(
+          child: Text("No completed orders."),
+        );
+      }
+
+      return ListView(
+        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+          Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+
+          return OrderCard(
+            orderNumber: document.id,
+            date: DateFormat('yyyy-MM-dd HH:mm')
+                .format(data['orderedAt'].toDate()),
+            items: '${data['itemCount']} items',
+            price: data['estTotal'].toStringAsFixed(2),
+            onTap: () {
+              // Navigate to OrderConfirmationPage3 and pass the order ID
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      OrderConfirmationPage3(orderId: document.id),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      );
+    },
+  );
+}
+
 class OrderCard extends StatelessWidget {
+  final VoidCallback onTap; // Make sure this is defined
   final String orderNumber;
   final String date;
-  final String estimatedDelivery;
   final String items;
   final String price;
-  final String imagePath;
 
   const OrderCard({
     super.key,
+    required this.onTap,
     required this.orderNumber,
     required this.date,
-    required this.estimatedDelivery,
     required this.items,
     required this.price,
-    required this.imagePath,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: InkWell(
-        onTap: () {
-          // Handle order tap
-          Navigator.pushNamed(context, '/XXXXXX');
-        },
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Image.asset(
-                imagePath,
-                height: 100,
-                width: 100,
-              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -169,20 +240,12 @@ class OrderCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      estimatedDelivery,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
                       items,
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'P $price',
+                      '₱$price',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
