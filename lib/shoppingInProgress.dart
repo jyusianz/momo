@@ -383,6 +383,8 @@ class _ShoppingInProgressPageState extends State<ShoppingInProgressPage> {
         'isCompleted': true,
       });
 
+      print(widget.orderId);
+
       Navigator.push(
         context,
         MaterialPageRoute(

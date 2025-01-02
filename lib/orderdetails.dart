@@ -374,10 +374,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       String consumerId = orderDoc.get('userId');
       String riderId = orderDoc.get('riderId');
 
-      // Create the chat
-      final chatService = ChatService(); // Create ChatService instance
-      String chatId = await chatService.createChat(consumerId, riderId);
-
       // Get the consumer's name
       DocumentSnapshot consumerDoc = await FirebaseFirestore.instance
           .collection(
@@ -396,10 +392,21 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       String riderName = riderDoc.get('First Name') ??
           'Rider'; // Use 'Rider' if name is not found
 
+      // Create the chat, checking if it exists first
+      final chatService = ChatService(); // Create ChatService instance
+      String? chatId = await chatService.getExistingChat(consumerId, riderId);
+
+      chatId == null
+          ?
+          // Create the chat
+          chatId = await chatService.createChat(consumerId, riderId)
+          : chatId = chatId;
+
       // Send the automatic message
       String message =
           "Hi $consumerName,\n\nThis is $riderName, your personal shopper at Momo! I'm here to help you with your order. 😊\n\nPlease feel free to send me any questions or special requests you may have. I'll do my best to assist you.";
-      await chatService.sendMessage(chatId, message);
+
+      await chatService.sendMessage(chatId!, message);
     } catch (e) {
       print('Error taking order: $e');
       // Show error message to user
@@ -410,7 +417,9 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       );
     }
     // Navigate to next page (to be implemented)
-    Navigator.pushReplacementNamed(context, '/riderOrderConfirmationPage');
+    print(widget.orderId);
+    Navigator.pushNamed(context, '/riderOrderConfirmationPage',
+        arguments: widget.orderId);
   }
 
   @override

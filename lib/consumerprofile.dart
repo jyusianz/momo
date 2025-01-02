@@ -145,10 +145,12 @@ class _RiderprofileState extends State<Consumerprofile> {
                       try {
                         // Sign out the user
                         await FirebaseAuth.instance.signOut();
+                        globalUID = null;
 
                         // Navigate to the login screen or home screen
-                        // You might need to replace '/login' with your actual login route
-                        Navigator.pushReplacementNamed(context, '/user');
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, '/user', (route) => false);
+                        //Navigator.pushReplacementNamed(context, '/user');
                       } catch (e) {
                         // Handle any errors that occur during sign-out
                         print('Error signing out: $e');

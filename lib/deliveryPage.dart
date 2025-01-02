@@ -269,6 +269,7 @@ class _DeliverypageState extends State<Deliverypage> {
           return const Center(child: Text("No items in this order."));
         }
 
+        print(snapshot.data!.docs);
         // Filter items where isChecked is true
         final checkedItems = snapshot.data!.docs
             .where((doc) => doc.data() != null && doc['isChecked'] == true)

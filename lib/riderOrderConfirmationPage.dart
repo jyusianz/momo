@@ -16,6 +16,7 @@ class RiderOrderConfirmationPage extends StatefulWidget {
 
 class _RiderOrderConfirmationPageState
     extends State<RiderOrderConfirmationPage> {
+  String? orderId;
   String? _riderName;
   String? _riderPhoneNumber;
   //bool _isShoppingStarted = false;
@@ -25,14 +26,30 @@ class _RiderOrderConfirmationPageState
   @override
   void initState() {
     super.initState();
-    _getOrderDetails();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is String) {
+      setState(() {
+        orderId = args; // Assign the received argument to orderId
+      });
+      print(orderId);
+      _getOrderDetails();
+    } else {
+      // Handle the case where orderId is null or of the wrong type
+      print('Error: orderId is null or of incorrect type');
+      // You might want to navigate back or show an error message
+    }
   }
 
   Future<void> _updateShoppingState() async {
     try {
       await FirebaseFirestore.instance
           .collection('Orders')
-          .doc(widget.orderId)
+          .doc(orderId)
           .update({
         'isShoppingStarted': true,
       });
@@ -43,9 +60,10 @@ class _RiderOrderConfirmationPageState
 
   Future<void> _getOrderDetails() async {
     try {
+      print(orderId);
       final orderDoc = await FirebaseFirestore.instance
           .collection('Orders')
-          .doc(widget.orderId)
+          .doc(orderId)
           .get();
 
       if (orderDoc['isTaken'] == true && orderDoc['riderId'] != null) {
@@ -135,7 +153,7 @@ class _RiderOrderConfirmationPageState
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('Orders')
-          .doc(widget.orderId)
+          .doc(orderId)
           .collection('Items')
           .snapshots(),
       builder: (context, snapshot) {
@@ -461,7 +479,7 @@ class _RiderOrderConfirmationPageState
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('Orders')
-            .doc(widget.orderId)
+            .doc(orderId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -493,7 +511,7 @@ class _RiderOrderConfirmationPageState
       bottomNavigationBar: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('Orders')
-            .doc(widget.orderId)
+            .doc(orderId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -521,7 +539,7 @@ class _RiderOrderConfirmationPageState
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              ShoppingInProgressPage(orderId: widget.orderId),
+                              ShoppingInProgressPage(orderId: orderId!),
                         ),
                       );
 

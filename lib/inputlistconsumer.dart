@@ -288,9 +288,9 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           padding: const EdgeInsets.all(0),
           child: IconButton(
             icon: Image.asset(
-              'Momo_images/checkicon.png',
-              width: 50,
-              height: 0,
+              'Momo_images/checkk.png',
+              width: 20,
+              height: 20,
             ),
             onPressed: () async {
               // Fetch the latest folder names before opening the dialog
@@ -493,7 +493,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   // Build the title TextField
   Widget _buildTitle() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
       child: GestureDetector(
         onTap: () {
           setState(() {
@@ -522,7 +522,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   // Build the timestamp Text
   Widget _buildTimestamp() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
       child: Text(
         // Format the current date and time as needed
         DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),

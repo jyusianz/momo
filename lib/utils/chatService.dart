@@ -32,6 +32,25 @@ class ChatService {
     }
   }
 
+  Future<String?> getExistingChat(String consumerId, String riderId) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('Chats') // Replace with your actual chat collection name
+          .where('participants', arrayContainsAny: [consumerId, riderId]).get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Chat exists, return the chatId
+        return querySnapshot.docs.first.id;
+      } else {
+        // Chat doesn't exist
+        return null;
+      }
+    } catch (e) {
+      print('Error checking for existing chat: $e');
+      return null;
+    }
+  }
+
   // Get chat history for a given chat ID
   Stream<QuerySnapshot> getChatHistory(String chatId) {
     return _firestore

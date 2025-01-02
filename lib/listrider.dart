@@ -81,7 +81,7 @@ class _ListriderState extends State<Listrider>
           ),
           InkWell(
             onTap: () {
-              Navigator.pushNamed(context, '/chatrider');
+              Navigator.pushNamed(context, '/chatListScreen');
             },
             child: Image.asset('Momo_images/chat.png'),
           ),
@@ -143,14 +143,9 @@ Widget _buildOngoingOrdersStream() {
                   ),
                 );
               } else {
-                // Navigate to OrderConfirmationPage3
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        RiderOrderConfirmationPage(orderId: document.id),
-                  ),
-                );
+                // Navigate to riderOrderConfirmationPage
+                Navigator.pushNamed(context, '/riderOrderConfirmationPage',
+                    arguments: document.id);
               }
             },
           );
@@ -206,14 +201,9 @@ Widget _buildOrderHistoryStream() {
                   ),
                 );
               } else {
-                // Navigate to OrderConfirmationPage3
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        RiderOrderConfirmationPage(orderId: document.id),
-                  ),
-                );
+                // Navigate to riderOrderConfirmationPage
+                Navigator.pushNamed(context, '/riderOrderConfirmationPage',
+                    arguments: document.id);
               }
             },
           );

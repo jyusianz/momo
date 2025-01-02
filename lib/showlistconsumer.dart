@@ -318,9 +318,13 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(0),
           child: IconButton(
-            icon: Image.asset('Momo_images/Check icon.png'),
+            icon: Image.asset(
+              'Momo_images/checkk.png',
+              width: 20,
+              height: 20,
+            ),
             onPressed: () async {
               // Fetch the latest folder names before opening the dialog
               await _fetchFolderNames();
@@ -593,8 +597,15 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildAddItemButton(),
-                    _buildEditButton(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                      child: _buildAddItemButton(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(
+                          8.0), // Add padding to _buildEditButton
+                      child: _buildEditButton(),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16.0),
@@ -618,7 +629,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
   // Build the title TextField
   Widget _buildTitle() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
       child: GestureDetector(
         onTap: () {
           setState(() {
@@ -647,7 +658,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
   // Build the timestamp Text
   Widget _buildTimestamp() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.fromLTRB(20, 2, 20, 2),
       child: Text(
         // Format the current date and time as needed
         DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
@@ -665,7 +676,8 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
       alignment: Alignment.centerRight,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 223, 236, 224),
+          backgroundColor: const Color(0xFF3DBC96),
+          foregroundColor: const Color(0XFFFFFFFF),
           textStyle: const TextStyle(fontSize: 20, color: Colors.white),
           padding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
@@ -780,11 +792,11 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
   // Build the "Order This List" button as a floating action button
   Widget _buildOrderThisListButton() {
     return SizedBox(
-      width: MediaQuery.of(context).size.width, // Make it screen width
+      width: MediaQuery.of(context).size.width - 20, // Make it screen width
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
-          foregroundColor: Colors.black,
+          backgroundColor: const Color(0xFF3DBC96),
+          foregroundColor: const Color(0xFFFFFFFF),
         ),
         onPressed: () async {
           if (_currentLid != null && globalUID != null) {
@@ -839,6 +851,7 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                 // Add the new fields to the itemData map
                 itemData['srPrice'] = 0; // Initially set srPrice to 0
                 itemData['totalPrice'] = 0; // Initially set totalPrice to 0
+                itemData['isChecked'] = false;
 
                 // Add the updated item data to the subcollection
                 await newOrderRef.collection('Items').add(itemData);
@@ -867,7 +880,9 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
             );
           }
         },
-        child: const Text("Order This List"),
+        child: const Text(
+          "Order This List",
+        ),
       ),
     );
   }

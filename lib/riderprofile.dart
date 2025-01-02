@@ -145,6 +145,7 @@ class _RiderprofileState extends State<Riderprofile> {
                       try {
                         // Sign out the user
                         await FirebaseAuth.instance.signOut();
+                        globalUID = null;
 
                         // Navigate to the login screen or home screen
                         // You might need to replace '/login' with your actual login route
