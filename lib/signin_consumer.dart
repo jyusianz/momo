@@ -35,7 +35,7 @@ class _Signin_consumerState extends State<Signin_consumer> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              const SizedBox(height: 50),
+              const SizedBox(height: 5),
               const Text(
                 'Sign In',
                 style: TextStyle(
@@ -43,16 +43,16 @@ class _Signin_consumerState extends State<Signin_consumer> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 5),
               const Text(
                 'Hi welcome back, youve been missed',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 60),
               // First Name
               TextFormField(
                 controller: _emailController,
@@ -66,7 +66,7 @@ class _Signin_consumerState extends State<Signin_consumer> {
                   fillColor: Colors.grey[200],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               // Last Name
 
               TextFormField(
@@ -128,7 +128,7 @@ class _Signin_consumerState extends State<Signin_consumer> {
                 child: const Text(
                   'Forgot Password?',
                   style: TextStyle(
-                    color: Colors.green,
+                    color: Color(0xFF12958C),
                   ),
                 ),
               ),
@@ -153,7 +153,8 @@ class _Signin_consumerState extends State<Signin_consumer> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: const Color(0xFF12958C),
+                  foregroundColor: const Color(0xFFFFFFFF),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 100, vertical: 15),
                   textStyle: const TextStyle(
@@ -217,7 +218,7 @@ class _Signin_consumerState extends State<Signin_consumer> {
                     child: const Text(
                       'Sign up',
                       style: TextStyle(
-                        color: Colors.green,
+                        color: Color(0xFF12958C),
                       ),
                     ),
                   ),

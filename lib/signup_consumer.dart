@@ -177,7 +177,7 @@ class _SignupConsumerState extends State<SignupConsumer> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              const SizedBox(height: 50),
+              const SizedBox(height: 5),
               const Text(
                 'Create Account',
                 style: TextStyle(
@@ -185,16 +185,16 @@ class _SignupConsumerState extends State<SignupConsumer> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 5),
               const Text(
                 'Fill your information below or register with your social account',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 20),
 
               // First Name
               TextFormField(
@@ -206,10 +206,10 @@ class _SignupConsumerState extends State<SignupConsumer> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[200],
+                  fillColor: const Color(0xFFEEEEEE),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
               // Last Name
               TextFormField(
@@ -221,10 +221,10 @@ class _SignupConsumerState extends State<SignupConsumer> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[200],
+                  fillColor: const Color(0xFFEEEEEE),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
               // Email
               TextFormField(
@@ -239,7 +239,7 @@ class _SignupConsumerState extends State<SignupConsumer> {
                   fillColor: Colors.grey[200],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
               // Password
               TextFormField(
@@ -282,7 +282,7 @@ class _SignupConsumerState extends State<SignupConsumer> {
                     child: const Text(
                       'Agree to Terms & Conditions',
                       style: TextStyle(
-                        color: Colors.green,
+                        color: Color(0xFF12958C),
                       ),
                     ),
                   ),
@@ -296,7 +296,8 @@ class _SignupConsumerState extends State<SignupConsumer> {
                   signUp();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: const Color(0xFF12958C),
+                  foregroundColor: Color.fromARGB(255, 255, 255, 255),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 100,
                     vertical: 15,
@@ -364,7 +365,7 @@ class _SignupConsumerState extends State<SignupConsumer> {
                     child: const Text(
                       'Sign in',
                       style: TextStyle(
-                        color: Colors.green,
+                        color: Color(0xFF12958C),
                       ),
                     ),
                   ),

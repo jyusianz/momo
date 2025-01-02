@@ -8,7 +8,7 @@ class Rider extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF55CFA7),
+          color: Color(0xFF12958C),
         ),
         child: SingleChildScrollView(
           child: Column(
@@ -22,7 +22,7 @@ class Rider extends StatelessWidget {
                 child: Image.asset(
                   'Momo_images/grocery.png',
                   width: double.infinity,
-                  height: 500,
+                  height: 270,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -83,7 +83,7 @@ class Rider extends StatelessWidget {
                       child: const Text(
                         'Let\'s Get Started',
                         style: TextStyle(
-                          color: Color(0xFF55CFA7),
+                          color: Color(0xFF12958C),
                           fontSize: 20,
                         ),
                         textAlign: TextAlign.center,

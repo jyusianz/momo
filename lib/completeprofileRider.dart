@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'firebase/firebase_auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CompleteProfileRider extends StatefulWidget {
   const CompleteProfileRider({super.key});
@@ -14,21 +15,54 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _mobileNumberController = TextEditingController();
 
+// Function to show the image upload dialog
+  void _showImageUploadDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Upload Profile Picture'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(
+                onPressed: () async {
+                  // Pick an image from gallery
+                  final XFile? image = await ImagePicker()
+                      .pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    await FirebaseFirestore.instance
+                        .collection('Rider')
+                        .doc(globalUID)
+                        .update({'avatar': image});
+                  }
+                },
+                child: Text('Choose from Gallery'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  // Pick an image from camera
+                  final XFile? image =
+                      await ImagePicker().pickImage(source: ImageSource.camera);
+                  if (image != null) {
+                    // TODO: Handle image upload to Firebase Storage
+                  }
+                },
+                child: Text('Take a Photo'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Complete Your Profile',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
         backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: GestureDetector(
           onTap: () {
             Navigator.pop(context);
@@ -40,11 +74,21 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
           ),
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Center(
+              child: Text(
+                'Complete Your Profile',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
             const SizedBox(height: 30),
             Center(
               child: Stack(
@@ -68,7 +112,7 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
                     child: Image.asset(
                       'Momo_images/Photo Gallery.png',
                       width: 20,
-                      height: 65,
+                      height: 20,
                     ),
                   ),
                 ],
@@ -82,7 +126,7 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
@@ -92,7 +136,7 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
             const Text(
               'Phone Number',
               style: TextStyle(
@@ -100,30 +144,25 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _mobileNumberController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter your phone number',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: const Text(
-                          '+63',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _mobileNumberController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                hintText: 'Enter your phone number',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                prefixIcon: Container(
+                  padding: const EdgeInsets.all(10),
+                  child: const Text(
+                    '+63',
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
             const Text(
               'Gender',
               style: TextStyle(
@@ -131,7 +170,7 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             DropdownButtonFormField(
               decoration: InputDecoration(
                 border: OutlineInputBorder(
@@ -143,7 +182,7 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
                   height: 30,
                 ),
               ),
-              value: 'Male',
+              value: _selectedGender,
               items: const [
                 DropdownMenuItem(
                   value: 'Male',
@@ -156,7 +195,7 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
               ],
               onChanged: (value) {
                 setState(() {
-                  _selectedGender = value.toString(); // Update selected value
+                  _selectedGender = value.toString();
                 });
               },
             ),
@@ -183,7 +222,8 @@ class _CompleteProfileRiderState extends State<CompleteProfileRider> {
                     horizontal: 50,
                     vertical: 15,
                   ),
-                  backgroundColor: const Color(0xFF50C26F),
+                  backgroundColor: const Color(0xFF12958C),
+                  foregroundColor: const Color(0xFFFFFFFF),
                   textStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

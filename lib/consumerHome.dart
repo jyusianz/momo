@@ -428,6 +428,9 @@ class _ConsumerHomeState extends State<ConsumerHome> {
                       .doc(lid)
                       .delete();
                   print("List with ID $lid deleted successfully.");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("List deleted successfully.")),
+                  );
 
                   // Close the dialog
                   Navigator.pop(context);
@@ -488,6 +491,10 @@ class _ConsumerHomeState extends State<ConsumerHome> {
                     }
                   });
                   print("Folder '$folderName' deleted successfully.");
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text("Folder deleted successfully.")),
+                  );
 
                   // Fetch the updated folder names after deleting
                   await _fetchFolderNames();
@@ -534,7 +541,7 @@ class ListCard extends StatelessWidget {
       onTap: onTap,
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -548,7 +555,7 @@ class ListCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 14),
                   Text(
                     createdAt != null
                         ? DateFormat('yyyy-MM-dd HH:mm')
@@ -556,7 +563,7 @@ class ListCard extends StatelessWidget {
                         : 'Not created yet',
                     style: const TextStyle(fontSize: 14),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
                     '$itemCount items',
                     style: const TextStyle(fontSize: 14),

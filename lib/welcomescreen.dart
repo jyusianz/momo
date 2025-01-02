@@ -45,7 +45,7 @@ class Home extends StatelessWidget {
               alignment: Alignment(-1.5, -1.5),
               child: CircleAvatar(
                 radius: 150,
-                backgroundColor: Color.fromARGB(255, 27, 145, 125),
+                backgroundColor: Color(0xFF1B917D),
               ),
             ),
             const Align(

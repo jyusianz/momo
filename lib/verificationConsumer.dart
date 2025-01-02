@@ -59,12 +59,12 @@ class _VerificationConsumerState extends State<VerificationConsumer> {
                 ),
               ),
             ),
-            const SizedBox(height: 50.0),
+            const SizedBox(height: 20.0),
             const Center(
               child: Text(
                 'Please enter the 4-digit code sent to your email address.',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -129,14 +129,15 @@ class _VerificationConsumerState extends State<VerificationConsumer> {
               child: Text(
                 "Didn't receive OTP?",
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Colors.black,
                 ),
               ),
             ),
             Center(
               child: TextButton(
-                style: TextButton.styleFrom(foregroundColor: Colors.green),
+                style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF12958C)),
                 onPressed: () {
                   // TODO: Implement resend code logic
                 },
@@ -150,24 +151,30 @@ class _VerificationConsumerState extends State<VerificationConsumer> {
             ),
             const SizedBox(height: 8.0),
             Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  textStyle: const TextStyle(fontSize: 30, color: Colors.white),
-                  padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CompleteProfileConsumer(),
+              child: SizedBox(
+                width: 200,
+                height: 60,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF12958C),
+                    foregroundColor: const Color(0XFFFFFFFF),
+                    textStyle:
+                        const TextStyle(fontSize: 20, color: Colors.white),
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  );
-                },
-                child: const Text('Verify'),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CompleteProfileConsumer(),
+                      ),
+                    );
+                  },
+                  child: const Text('Verify'),
+                ),
               ),
             ),
             const SizedBox(height: 16.0),

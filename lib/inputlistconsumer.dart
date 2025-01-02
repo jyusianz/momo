@@ -285,9 +285,13 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(0),
           child: IconButton(
-            icon: Image.asset('Momo_images/Check icon.png'),
+            icon: Image.asset(
+              'Momo_images/checkicon.png',
+              width: 50,
+              height: 0,
+            ),
             onPressed: () async {
               // Fetch the latest folder names before opening the dialog
               await _fetchFolderNames();
@@ -306,6 +310,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
+                          textAlign: TextAlign.left,
                         ),
                         const SizedBox(height: 10),
                         TextField(
@@ -359,6 +364,9 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                                       ),
                                     ),
                                     actions: [
+                                      SizedBox(
+                                        height: 5,
+                                      ),
                                       TextButton(
                                         onPressed: () => Navigator.pop(context),
                                         child: const Text('Cancel'),
@@ -410,6 +418,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                             }
                           },
                         ),
+                        const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -427,13 +436,13 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                               },
                               child: const Text('Save'),
                             ),
-                            ElevatedButton(
+                            /*ElevatedButton(
                               onPressed: () {
                                 Navigator.pushNamed(
                                     context, '/orderlistrequestconsumer');
                               },
                               child: const Text('Save & Order'),
-                            ),
+                            ),*/
                           ],
                         ),
                       ],
@@ -460,8 +469,15 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildAddItemButton(),
-              _buildEditButton(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+                child: _buildAddItemButton(),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(
+                    8.0), // Add padding to _buildEditButton
+                child: _buildEditButton(),
+              ),
             ],
           ),
           const SizedBox(height: 16.0),
@@ -524,7 +540,8 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       alignment: Alignment.centerRight,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 223, 236, 224),
+          backgroundColor: const Color(0xFF3DBC96),
+          foregroundColor: const Color(0XFFFFFFFF),
           textStyle: const TextStyle(fontSize: 20, color: Colors.white),
           padding: const EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
@@ -768,8 +785,6 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                 _itemSpecialInstructionsController,
               ),
               const SizedBox(height: 10),
-              _buildAddPictureButton(),
-              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -842,27 +857,6 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
       } else {
         print("Error adding item: _currentLid or globalUID is null");
       }
-    }
-  }
-
-  // Build the "Add Picture" button
-  Widget _buildAddPictureButton() {
-    return ElevatedButton(
-      onPressed: _pickImage,
-      child: const Text("Add Picture"),
-    );
-  }
-
-  // Pick an image from the gallery
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final XFile? pickedImage =
-        await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedImage != null) {
-      setState(() {
-        _itemImages[_itemNameController.text] = pickedImage;
-      });
     }
   }
 

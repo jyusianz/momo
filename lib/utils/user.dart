@@ -10,8 +10,8 @@ class User extends StatelessWidget {
             decoration: const BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  Color.fromARGB(255, 143, 236, 201),
-                  Color.fromARGB(255, 54, 212, 152),
+                  Color(0xFF12958C),
+                  Color(0xFF1BBAA0),
                 ],
                 center: Alignment(-0.6, -0.6),
                 radius: 1.5,
@@ -22,21 +22,21 @@ class User extends StatelessWidget {
                 alignment: Alignment(-1.5, -1.5),
                 child: CircleAvatar(
                   radius: 150,
-                  backgroundColor: Color.fromARGB(255, 58, 201, 177),
+                  backgroundColor: Color.fromARGB(255, 238, 255, 253),
                 ),
               ),
               const Align(
                 alignment: Alignment(1, -1),
                 child: CircleAvatar(
                   radius: 50,
-                  backgroundColor: Color.fromARGB(255, 89, 228, 198),
+                  backgroundColor: Color.fromARGB(255, 255, 255, 255),
                 ),
               ),
               const Align(
                 alignment: Alignment(1.5, 1.5),
                 child: CircleAvatar(
                   radius: 170,
-                  backgroundColor: Color.fromARGB(255, 75, 211, 182),
+                  backgroundColor: Color.fromARGB(255, 247, 255, 255),
                 ),
               ),
               Center(

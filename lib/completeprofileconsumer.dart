@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'firebase/firebase_auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CompleteProfileConsumer extends StatefulWidget {
   const CompleteProfileConsumer({super.key});
- 
+
   @override
   _CompleteProfileConsumerState createState() =>
       _CompleteProfileConsumerState();
@@ -15,20 +16,52 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _mobileNumberController = TextEditingController();
 
+// Function to show the image upload dialog
+  void _showImageUploadDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Upload Profile Picture'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(
+                onPressed: () async {
+                  // Pick an image from gallery
+                  final XFile? image = await ImagePicker()
+                      .pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    await FirebaseFirestore.instance
+                        .collection('Consumer')
+                        .doc(globalUID)
+                        .update({'avatar': image});
+                  }
+                },
+                child: Text('Choose from Gallery'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  // Pick an image from camera
+                  final XFile? image =
+                      await ImagePicker().pickImage(source: ImageSource.camera);
+                  if (image != null) {
+                    // TODO: Handle image upload to Firebase Storage
+                  }
+                },
+                child: Text('Take a Photo'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Complete Your Profile',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
         backgroundColor: Colors.transparent,
         leading: GestureDetector(
           onTap: () {
@@ -41,23 +74,39 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
           ),
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: const Text(
+                'Complete Your Profile',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
             const SizedBox(height: 30),
             Center(
               child: Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.grey[300],
-                    child: Image.asset(
-                      'Momo_images/Account.png',
-                      width: 80,
-                      height: 60,
+                  GestureDetector(
+                    // Make the CircleAvatar clickable
+                    onTap: () {
+                      _showImageUploadDialog(context);
+                    },
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.grey[300],
+                      child: Image.asset(
+                        'Momo_images/Account.png',
+                        width: 80,
+                        height: 60,
+                      ),
                     ),
                   ),
                   Container(
@@ -83,7 +132,7 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
@@ -93,7 +142,7 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
             const Text(
               'Phone Number',
               style: TextStyle(
@@ -101,7 +150,7 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -124,7 +173,7 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
             const Text(
               'Gender',
               style: TextStyle(
@@ -132,7 +181,7 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             DropdownButtonFormField(
               decoration: InputDecoration(
                 border: OutlineInputBorder(
@@ -184,7 +233,8 @@ class _CompleteProfileConsumerState extends State<CompleteProfileConsumer> {
                     horizontal: 50,
                     vertical: 15,
                   ),
-                  backgroundColor: const Color(0xFF50C26F),
+                  backgroundColor: const Color(0xFF12958C),
+                  foregroundColor: const Color(0xFFFFFFFF),
                   textStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

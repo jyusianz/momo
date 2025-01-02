@@ -177,7 +177,7 @@ class _Signup_riderState extends State<Signup_rider> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              const SizedBox(height: 50),
+              const SizedBox(height: 5),
               const Text(
                 'Create Account',
                 style: TextStyle(
@@ -185,16 +185,16 @@ class _Signup_riderState extends State<Signup_rider> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 5),
               const Text(
                 'Fill your information below or register with your social account',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Colors.grey,
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 20),
               // First Name
               TextFormField(
                 controller: _FirstNameController,
@@ -208,7 +208,7 @@ class _Signup_riderState extends State<Signup_rider> {
                   fillColor: Colors.grey[200],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               // Last Name
               TextFormField(
                 controller: _LastNameController,
@@ -222,7 +222,7 @@ class _Signup_riderState extends State<Signup_rider> {
                   fillColor: Colors.grey[200],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               // Email
               TextFormField(
                 controller: _emailController,
@@ -236,7 +236,7 @@ class _Signup_riderState extends State<Signup_rider> {
                   fillColor: Colors.grey[200],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               // Password
               TextFormField(
                 controller: _passwordController,
@@ -279,7 +279,7 @@ class _Signup_riderState extends State<Signup_rider> {
                     child: const Text(
                       'Agree to Terms & Conditions',
                       style: TextStyle(
-                        color: Colors.green,
+                        color: Color(0xFF12958C),
                       ),
                     ),
                   ),
@@ -292,7 +292,7 @@ class _Signup_riderState extends State<Signup_rider> {
                   signUp();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: const Color(0xFF12958C),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 100,
                     vertical: 15,
@@ -361,7 +361,7 @@ class _Signup_riderState extends State<Signup_rider> {
                     child: const Text(
                       'Sign in',
                       style: TextStyle(
-                        color: Colors.green,
+                        color: Color(0xFF12958C),
                       ),
                     ),
                   ),

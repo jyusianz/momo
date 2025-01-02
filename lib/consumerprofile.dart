@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Consumerprofile extends StatefulWidget {
   const Consumerprofile({super.key});
@@ -8,28 +11,59 @@ class Consumerprofile extends StatefulWidget {
 }
 
 class _RiderprofileState extends State<Consumerprofile> {
+  String _userName = 'User'; // Default name
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    if (globalUID != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('Consumer')
+            .doc(globalUID!)
+            .get();
+
+        if (userDoc.exists) {
+          setState(() {
+            _userName = userDoc['User Name'];
+          });
+        } else {
+          print('User document not found');
+        }
+      } catch (e) {
+        print('Error fetching user name: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Image.asset('Momo_images/back.png', height: 30, width: 30),
+        automaticallyImplyLeading: false,
+        title: const Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: '\n', // Add an empty line
+              ),
+              TextSpan(
+                text: '\tProfile', // Add tab and the actual text
+                style: TextStyle(
+                  fontSize: 30, // Adjust font size
+                  fontWeight: FontWeight.bold, // Make it bold
+                  color: Colors.black, // Optional: change text color
+                ),
+              ),
+            ],
           ),
-        ),
-        title: const Text(
-          '                       Profile',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-          ),
+          textAlign: TextAlign.start, // Optional: Align text to the start
         ),
       ),
       body: SingleChildScrollView(
@@ -68,9 +102,9 @@ class _RiderprofileState extends State<Consumerprofile> {
               ),
             ),
             const SizedBox(height: 10),
-            const Center(
+            Center(
               child: Text(
-                'Costumer 12345',
+                _userName,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -96,13 +130,6 @@ class _RiderprofileState extends State<Consumerprofile> {
                       Navigator.pushNamed(context, '/manageaddressconsumer');
                     },
                   ),
-                  buildListTile(
-                    leadingImage: 'Momo_images/Card Payment.png',
-                    title: 'Payment Methods',
-                    onTap: () {
-                      Navigator.pushNamed(context, '/paymentmethodconsumer');
-                    },
-                  ),
                   // comment here
                   buildListTile(
                     leadingImage: 'Momo_images/Settings.png',
@@ -112,17 +139,23 @@ class _RiderprofileState extends State<Consumerprofile> {
                     },
                   ),
                   buildListTile(
-                    leadingImage: 'Momo_images/Help.png',
-                    title: 'Help Center',
-                    onTap: () {
-                      Navigator.pushNamed(context, '/helpcenterconsumer');
-                    },
-                  ),
-                  buildListTile(
-                    leadingImage: 'Momo_images/Settings.png',
-                    title: 'Privacy Policy',
-                    onTap: () {
-                      Navigator.pushNamed(context, '/privacypolicyconsumer');
+                    leadingImage: 'Momo_images/log-out.png',
+                    title: 'Log Out',
+                    onTap: () async {
+                      try {
+                        // Sign out the user
+                        await FirebaseAuth.instance.signOut();
+
+                        // Navigate to the login screen or home screen
+                        // You might need to replace '/login' with your actual login route
+                        Navigator.pushReplacementNamed(context, '/user');
+                      } catch (e) {
+                        // Handle any errors that occur during sign-out
+                        print('Error signing out: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error signing out.')),
+                        );
+                      }
                     },
                   ),
                 ],
@@ -148,7 +181,7 @@ class _RiderprofileState extends State<Consumerprofile> {
           ),
           InkWell(
             onTap: () {
-              Navigator.pushNamed(context, '/chatconsumer');
+              Navigator.pushNamed(context, '/chatListScreen');
             },
             child: Image.asset('Momo_images/chat.png'),
           ),
