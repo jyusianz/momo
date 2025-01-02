@@ -1,7 +1,46 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:food/orderdetails.dart';
+import 'package:intl/intl.dart';
+//import 'package:food/orderConfirmationPage3.dart';
 
-class RiderHome extends StatelessWidget {
+class RiderHome extends StatefulWidget {
   const RiderHome({super.key});
+  @override
+  State<RiderHome> createState() => _RiderHomeState();
+}
+
+class _RiderHomeState extends State<RiderHome> {
+  String _userName = 'User'; // Default name
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  // Fetch the user's name from Firestore
+  Future<void> _fetchUserName() async {
+    if (globalUID != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('Rider')
+            .doc(globalUID!)
+            .get();
+
+        if (userDoc.exists) {
+          setState(() {
+            _userName = userDoc['User Name'];
+          });
+        } else {
+          print('User document not found');
+        }
+      } catch (e) {
+        print('Error fetching user name: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,61 +69,78 @@ class RiderHome extends StatelessWidget {
                     child: Image.asset('Momo_images/Account.png'),
                   ),
                   const SizedBox(width: 20),
-                  const Text(
-                    'Rider 12345',
-                    style: TextStyle(
+                  Text(
+                    _userName,
+                    style: const TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: Color(0xFF3DBC96),
                     ),
                   ),
                 ],
               ),
             ),
             const Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.fromLTRB(32, 1, 1, 32),
               child: Text(
-                'Are you ready to work? Choose an order below.',
-                style: TextStyle(fontSize: 16),
+                '"Are you ready to work? Choose an order below."',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ),
-            const SizedBox(height: 16),
-            OrderCard(
-              orderNumber: '123456',
-              date: '25 - May - 2024, 1:00 PM',
-              estimatedDelivery: 'Est. Delivery on 28, May',
-              items: '4 items',
-              price: '1165.00',
-              imagePath: 'Momo_images/egg.png',
-              onTap: () {
-                Navigator.pushNamed(context, '/orderdetsrider');
+            const Divider(),
+            // StreamBuilder to fetch and display orders
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Orders')
+                  .where('isPlaced', isEqualTo: true)
+                  .where('isTaken', isEqualTo: false)
+                  .where('isCompleted', isEqualTo: false)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                    child: Text("No orders available."),
+                  );
+                }
+
+                return ListView(
+                  shrinkWrap: true, // Important for ListView inside Column
+                  physics:
+                      const NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
+                  children:
+                      snapshot.data!.docs.map((DocumentSnapshot document) {
+                    Map<String, dynamic> data =
+                        document.data()! as Map<String, dynamic>;
+
+                    return OrderCard(
+                      orderNumber: document.id,
+                      date: DateFormat('yyyy-MM-dd HH:mm')
+                          .format((data['orderedAt'] as Timestamp).toDate()),
+                      items: '${data['itemCount']} items',
+                      price: data['estTotal'].toStringAsFixed(2),
+                      onTap: () {
+                        // Navigate to OrderConfirmationPage3 and pass the order ID
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                OrderDetailsPage(orderId: document.id),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                );
               },
             ),
-            const SizedBox(height: 16),
-            OrderCard(
-              orderNumber: '135790',
-              date: '25 - May - 2024, 1:00PM',
-              estimatedDelivery: 'Est. Delivery on 26, May',
-              items: '5 items',
-              price: '300.00',
-              imagePath: 'Momo_images/bread.png',
-              onTap: () {
-                Navigator.pushNamed(context, '/XXXXXXXXXX');
-              },
-            ),
-            const SizedBox(height: 16),
-            OrderCard(
-              orderNumber: '246810',
-              date: '25 - May - 2024, 1:00 PM',
-              estimatedDelivery: 'Est. Delivery on 26, May',
-              items: '2 items',
-              price: '180.00',
-              imagePath: 'Momo_images/nestle.png',
-              onTap: () {
-                Navigator.pushNamed(context, '/XXXXXXXX');
-              },
-            ),
-            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -101,11 +157,11 @@ class RiderHome extends StatelessWidget {
             onTap: () {
               Navigator.pushNamed(context, '/listrider');
             },
-            child: Image.asset('Momo_images/My list.png'),
+            child: Image.asset('Momo_images/orders.png'),
           ),
           InkWell(
             onTap: () {
-              Navigator.pushNamed(context, '/chatrider');
+              Navigator.pushNamed(context, '/chatListScreen');
             },
             child: Image.asset('Momo_images/chat.png'),
           ),
@@ -124,20 +180,16 @@ class RiderHome extends StatelessWidget {
 class OrderCard extends StatelessWidget {
   final String orderNumber;
   final String date;
-  final String estimatedDelivery;
   final String items;
   final String price;
-  final String imagePath;
   final VoidCallback onTap;
 
   const OrderCard({
     super.key,
     required this.orderNumber,
     required this.date,
-    required this.estimatedDelivery,
     required this.items,
     required this.price,
-    required this.imagePath,
     required this.onTap,
   });
 
@@ -150,11 +202,6 @@ class OrderCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Image.asset(
-                imagePath,
-                height: 100,
-                width: 100,
-              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -174,14 +221,6 @@ class OrderCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      estimatedDelivery,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
                       items,
                       style: const TextStyle(fontSize: 14),
                     ),
@@ -191,7 +230,7 @@ class OrderCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: Color(0xFF3DBC96),
                       ),
                     ),
                   ],

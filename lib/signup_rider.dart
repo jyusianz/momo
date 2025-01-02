@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:food/verificationRider.dart';
 
 class Signup_rider extends StatefulWidget {
   const Signup_rider({super.key});
@@ -10,9 +12,11 @@ class Signup_rider extends StatefulWidget {
 
 class _Signup_riderState extends State<Signup_rider> {
   bool _agreeToTerms = false;
-  final FirebaseAuthService _service = FirebaseAuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _LastNameController = TextEditingController();
+  final TextEditingController _FirstNameController = TextEditingController();
+  final FirebaseAuthService _service = FirebaseAuthService();
 
   void _showTermsAndConditions() {
     showDialog(
@@ -100,6 +104,57 @@ class _Signup_riderState extends State<Signup_rider> {
     );
   }
 
+  Future<void> signUp() async {
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You must agree to the terms and conditions.'),
+        ),
+      );
+      return;
+    }
+
+    final emailString = _emailController.text.trim();
+    final passwordString = _passwordController.text.trim();
+    final lastNameString = _LastNameController.text.trim();
+    final firstNameString = _FirstNameController.text.trim();
+
+    try {
+      // Register user with FirebaseAuthService
+      final userCredential = await _service.registerCredential(
+          emailString, passwordString, 'Rider');
+      final uid = userCredential.user?.uid; // Get UID of the registered user
+
+      if (uid == null) {
+        throw Exception("User ID is null.");
+      }
+
+      // Save user data in Firestore under the same UID
+      await FirebaseFirestore.instance.collection('Rider').doc(uid).set({
+        'First Name': firstNameString,
+        'Last Name': lastNameString,
+        'email': emailString,
+        'User Name': '', // Empty or default values
+        'Mobile Number': '',
+        'Gender': '',
+      }, SetOptions(merge: true));
+
+      // Navigate to the next page with the UID
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const VerificationRider(),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registration failed: $e'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -142,6 +197,7 @@ class _Signup_riderState extends State<Signup_rider> {
               const SizedBox(height: 50),
               // First Name
               TextFormField(
+                controller: _FirstNameController,
                 decoration: InputDecoration(
                   hintText: 'First Name',
                   border: OutlineInputBorder(
@@ -155,6 +211,7 @@ class _Signup_riderState extends State<Signup_rider> {
               const SizedBox(height: 20),
               // Last Name
               TextFormField(
+                controller: _LastNameController,
                 decoration: InputDecoration(
                   hintText: 'Last Name',
                   border: OutlineInputBorder(
@@ -231,13 +288,8 @@ class _Signup_riderState extends State<Signup_rider> {
               const SizedBox(height: 40),
               // Sign Up Button
               ElevatedButton(
-                onPressed: () async {
-                  final String emailString = _emailController.text.trim();
-                  final String passwordString = _passwordController.text.trim();
-
-                  await _service.registerCredential(
-                      emailString, passwordString);
-                  Navigator.pushNamed(context, '/verificationRider');
+                onPressed: () {
+                  signUp();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,

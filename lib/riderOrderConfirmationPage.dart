@@ -1,24 +1,44 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:food/firebase/firebase_auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:food/shoppingInProgress.dart';
+//import 'package:url_launcher/url_launcher.dart';
 
-class OrderConfirmationPage3 extends StatefulWidget {
+class RiderOrderConfirmationPage extends StatefulWidget {
   final String orderId;
 
-  const OrderConfirmationPage3({super.key, required this.orderId});
+  const RiderOrderConfirmationPage({Key? key, required this.orderId})
+      : super(key: key);
 
   @override
-  State<OrderConfirmationPage3> createState() => _OrderConfirmationPage3State();
+  State<RiderOrderConfirmationPage> createState() =>
+      _RiderOrderConfirmationPageState();
 }
 
-class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
+class _RiderOrderConfirmationPageState
+    extends State<RiderOrderConfirmationPage> {
   String? _riderName;
   String? _riderPhoneNumber;
+  //bool _isShoppingStarted = false;
+  //Map<String, dynamic>? _orderData; // Define _orderData
+  //List<Map<String, dynamic>> _items = []; // Define _items
 
   @override
   void initState() {
     super.initState();
     _getOrderDetails();
+  }
+
+  Future<void> _updateShoppingState() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Orders')
+          .doc(widget.orderId)
+          .update({
+        'isShoppingStarted': true,
+      });
+    } catch (e) {
+      print('Error updating shopping state: $e');
+    }
   }
 
   Future<void> _getOrderDetails() async {
@@ -59,54 +79,13 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
         ),
         const SizedBox(height: 16),
         Text(
-          "Rider $_riderName has taken your order.",
+          "Rider $_riderName has taken this order.",
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         // Display rider information
         Text("Rider Name: $_riderName"),
         Text("Phone Number: $_riderPhoneNumber"),
-      ],
-    );
-  }
-
-  Widget _buildorderCompletedContent(DocumentSnapshot orderDoc) {
-    return Column(
-      children: [
-        // Image for order taken
-        Image.asset(
-          'Momo_images/ordercompleted.png', // Replace with your image path
-          height: 150,
-          width: 150,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Rider $_riderName has completed your order.",
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        // Display rider information
-        Text("Rider Name: $_riderName"),
-        Text("Phone Number: $_riderPhoneNumber"),
-      ],
-    );
-  }
-
-  Widget _buildOrderPlacedContent() {
-    return Column(
-      children: [
-        // Image for waiting for rider
-        Image.asset(
-          'Momo_images/orderplaced.png', // Replace with your image path
-          height: 100,
-          width: 100,
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          "Order placed. Waiting for a Rider to take your order.",
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
       ],
     );
   }
@@ -474,7 +453,7 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
           IconButton(
             icon: const Icon(Icons.close),
             onPressed: () async {
-              Navigator.pushReplacementNamed(context, '/consumerHome');
+              Navigator.pushReplacementNamed(context, '/riderHome');
             },
           ),
         ],
@@ -504,17 +483,65 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Display different content based on isTaken field
-                if (orderDoc['isTaken'] == true &&
-                    orderDoc['isDelivered'] == false)
-                  _buildOrderTakenContent(orderDoc)
-                else if (orderDoc['isTaken'] == true &&
-                    orderDoc['isDelivered'] == true)
-                  _buildorderCompletedContent(orderDoc)
-                else
-                  _buildOrderPlacedContent(),
+                _buildOrderTakenContent(orderDoc),
                 _buildOrderDetails(orderDoc),
               ],
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('Orders')
+            .doc(widget.orderId)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error fetching order status'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          bool isCompleted = snapshot.data?['isCompleted'] ?? false;
+          bool isShoppingStarted = snapshot.data?['isShoppingStarted'] ?? false;
+
+          return Container(
+            padding: const EdgeInsets.all(16.0),
+            // color: isCompleted ? Colors.grey : Colors.green,
+            child: ElevatedButton(
+              onPressed: isCompleted
+                  ? null
+                  : () async {
+                      await _updateShoppingState();
+                      // 1. Navigate to the next page ("Shopping in Progress")
+                      // Correct way to navigate
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ShoppingInProgressPage(orderId: widget.orderId),
+                        ),
+                      );
+
+                      // 2. Update button state
+                      setState(() {
+                        isShoppingStarted = true;
+                      });
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isCompleted ? Colors.grey : Colors.green,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(50),
+              ),
+              child: Text(
+                isCompleted
+                    ? "Finished Order"
+                    : (isShoppingStarted
+                        ? "Continue Shopping"
+                        : "Start Shopping"),
+              ),
             ),
           );
         },

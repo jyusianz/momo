@@ -1,6 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+// Define your User class
+class User1 {
+  final String uid;
+  final String email;
+  final String userType;
+
+  User1({
+    required this.uid,
+    required this.email,
+    required this.userType,
+  });
+}
+
 // Declare globalUID (Make sure this is in your main.dart or an appropriate global scope)
 String? globalUID;
 
@@ -10,25 +23,27 @@ class FirebaseAuthService {
 
   // Register user and save data in Firestore
   Future<UserCredential> registerCredential(
-      String email, String password) async {
+      String email, String password, String userType) async {
+    // Add userType parameter
     try {
-      // Create user with email and password
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // If user is successfully created, store their information in Firestore
       User? user = userCredential.user;
       if (user != null) {
-        await _firestore.collection('Consumer').doc(user.uid).set({
+        // Determine the collection based on userType
+        String collection = userType == 'Rider' ? 'Rider' : 'Consumer';
+
+        await _firestore.collection(collection).doc(user.uid).set({
           'email': email,
           'uid': user.uid,
+          'userType': userType, // Store userType in Firestore
           'createdAt': FieldValue.serverTimestamp(),
         });
 
-        // Set the global UID after successful registration
         globalUID = user.uid;
       }
 

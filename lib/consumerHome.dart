@@ -79,9 +79,6 @@ class _ConsumerHomeState extends State<ConsumerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -117,28 +114,38 @@ class _ConsumerHomeState extends State<ConsumerHome> {
             ),
           ),
           const Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.fromLTRB(32, 1, 1, 32),
             child: Text(
               '"Ready to restock? Whats on your grocery list today?"',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 1),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/inputlistconsumer');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                textStyle: const TextStyle(fontSize: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 1),
+            child: SizedBox(
+              width: 300,
+              height: 120,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/inputlistconsumer');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3DBC96),
+                  foregroundColor: Colors.white, // Change font color here
+                  padding: const EdgeInsets.fromLTRB(20, 32, 20, 32),
+                  textStyle: const TextStyle(
+                      fontSize: 26, fontWeight: FontWeight.w500),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                        10), // Adjust the value for roundness
+                  ),
+                ),
+                child: const Text('  + Create a New List  '),
               ),
-              child: const Text('  + Create a New List  '),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 10),
 
           // "My Lists" text is now above the tabs
           const Padding(
@@ -239,7 +246,10 @@ class _ConsumerHomeState extends State<ConsumerHome> {
           ),
           InkWell(
             onTap: () {
-              Navigator.pushNamed(context, '/chatconsumer');
+              Navigator.pushNamed(
+                context,
+                '/chatListScreen',
+              );
             },
             child: Image.asset('Momo_images/chat.png'),
           ),

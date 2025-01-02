@@ -1,114 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:food/utils/chatService.dart';
 import 'package:flutter/material.dart';
 
-class OrderConfirmationPage3 extends StatefulWidget {
+class OrderDetailsPage extends StatefulWidget {
   final String orderId;
 
-  const OrderConfirmationPage3({super.key, required this.orderId});
+  const OrderDetailsPage({super.key, required this.orderId});
 
   @override
-  State<OrderConfirmationPage3> createState() => _OrderConfirmationPage3State();
+  State<OrderDetailsPage> createState() => _OrderDetailsPageState();
 }
 
-class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
-  String? _riderName;
-  String? _riderPhoneNumber;
-
+class _OrderDetailsPageState extends State<OrderDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _getOrderDetails();
-  }
-
-  Future<void> _getOrderDetails() async {
-    try {
-      final orderDoc = await FirebaseFirestore.instance
-          .collection('Orders')
-          .doc(widget.orderId)
-          .get();
-
-      if (orderDoc['isTaken'] == true && orderDoc['riderId'] != null) {
-        final riderId = orderDoc['riderId'];
-        final riderDoc = await FirebaseFirestore.instance
-            .collection('Rider')
-            .doc(riderId)
-            .get();
-
-        setState(() {
-          // Add setState here
-          _riderName = riderDoc['First Name'] != null
-              ? riderDoc['First Name'] + ' ' + riderDoc['Last Name']
-              : 'Unknown Rider'; // Or handle the missing name appropriately
-          _riderPhoneNumber = riderDoc['Mobile Number'];
-        });
-      }
-    } catch (e) {
-      print('Error fetching order details: $e');
-    }
-  }
-
-  Widget _buildOrderTakenContent(DocumentSnapshot orderDoc) {
-    return Column(
-      children: [
-        // Image for order taken
-        Image.asset(
-          'Momo_images/ordertaken.png', // Replace with your image path
-          height: 100,
-          width: 100,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Rider $_riderName has taken your order.",
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        // Display rider information
-        Text("Rider Name: $_riderName"),
-        Text("Phone Number: $_riderPhoneNumber"),
-      ],
-    );
-  }
-
-  Widget _buildorderCompletedContent(DocumentSnapshot orderDoc) {
-    return Column(
-      children: [
-        // Image for order taken
-        Image.asset(
-          'Momo_images/ordercompleted.png', // Replace with your image path
-          height: 150,
-          width: 150,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Rider $_riderName has completed your order.",
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        // Display rider information
-        Text("Rider Name: $_riderName"),
-        Text("Phone Number: $_riderPhoneNumber"),
-      ],
-    );
-  }
-
-  Widget _buildOrderPlacedContent() {
-    return Column(
-      children: [
-        // Image for waiting for rider
-        Image.asset(
-          'Momo_images/orderplaced.png', // Replace with your image path
-          height: 100,
-          width: 100,
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          "Order placed. Waiting for a Rider to take your order.",
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
   }
 
   Widget _buildOrderDetails(DocumentSnapshot orderDoc) {
@@ -189,8 +96,7 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
               },
             ),
             // Price Summary
-            _buildPriceSummary(orderDoc,
-                snapshot), // Add this line to include the price summary
+            _buildPriceSummary(orderDoc, snapshot),
           ],
         );
       },
@@ -214,7 +120,7 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
     }
   }
 
-// Add this new method to show the fee information dialog
+  // Add this new method to show the fee information dialog
   void _showFeeInfoDialog(BuildContext context, String title, String message) {
     showDialog(
       context: context,
@@ -326,7 +232,6 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Display other item details with smaller font size
               Text(
                 data['Description'],
                 style: const TextStyle(fontSize: 12),
@@ -350,14 +255,12 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
                   "Special Instructions: ${data['Special Instructions']}",
                   style: const TextStyle(fontSize: 12),
                 ),
-              // Display estimated price (srPrice)
               Text(
-                "Estimated Price: \₱${estimatedPrice.toStringAsFixed(2)}",
+                "Estimated Price: ₱${estimatedPrice.toStringAsFixed(2)}",
                 style: const TextStyle(fontSize: 14),
               ),
-              // Display total price for this item (totalPrice)
               Text(
-                "Item Total: \₱${itemTotal.toStringAsFixed(2)}",
+                "Item Total: ₱${itemTotal.toStringAsFixed(2)}",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -374,73 +277,62 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
   // Fetch products for a given market from Firestore
   Future<List<Map<String, dynamic>>> fetchMarketProducts(
       String marketName) async {
-    // 1. Get the marketId for the selected marketName (using async/await)
     String marketId = await _getMarketIdFromName(marketName);
 
-    // 2. Fetch products from the 'Products' subcollection within the market document
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Markets')
-          .doc(marketId) // Access the market document using marketId
-          .collection('Products') // Access the 'Products' subcollection
+          .doc(marketId)
+          .collection('Products')
           .get();
 
-      // Convert the query result to a list of maps
       List<Map<String, dynamic>> products =
           querySnapshot.docs.map((doc) => doc.data()).toList();
 
       return products;
     } catch (e) {
       print('Error fetching market products: $e');
-      return []; // Or handle the error as needed
+      return [];
     }
   }
 
   // Helper function to get marketId from marketName
   Future<String> _getMarketIdFromName(String marketName) async {
-    // Change return type to Future<String>
     try {
-      // 1. Query the 'Markets' collection for the document with the matching marketName
       final querySnapshot = await FirebaseFirestore.instance
           .collection('Markets')
           .where('Market Name', isEqualTo: marketName)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // 2. If a document is found, return its marketId
         return querySnapshot.docs.first.id;
       } else {
-        // 3. If no document is found, return an empty string or handle the error appropriately
         print('No market found with name: $marketName');
         return '';
       }
     } catch (e) {
       print('Error fetching market ID: $e');
-      return ''; // Or handle the error as needed
+      return '';
     }
   }
 
   // Calculate the estimated price for an item based on the selected market
   Future<double> getEstimatedPrice(
-      // Change return type to Future<double>
-      Map<String, dynamic> itemData,
-      String marketName) async {
-    // 1. Fetch products for the selected market from your database
+      Map<String, dynamic> itemData, String marketName) async {
     List<Map<String, dynamic>> marketProducts =
-        await fetchMarketProducts(marketName); // Await the result
+        await fetchMarketProducts(marketName);
 
-    // 2. Find the matching product in the marketProducts list
     for (var product in marketProducts) {
       if (product['Product Name'] == itemData['Name']) {
         if (product['SRPrice'] is int) {
           return (product['SRPrice'] as int).toDouble();
         } else {
-          return product['SRPrice'] as double; // Already a double
+          return product['SRPrice'] as double;
         }
       }
     }
 
-    return 0.0; // Return 0 if no match is found
+    return 0.0;
   }
 
   // Helper function to get market address from marketName
@@ -464,17 +356,74 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
     }
   }
 
+  // Function to handle taking the order
+  Future<void> _takeOrder() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Orders')
+          .doc(widget.orderId)
+          .update({
+        'isTaken': true,
+        'riderId': globalUID,
+      });
+      // Get the consumerId and riderId
+      DocumentSnapshot orderDoc = await FirebaseFirestore.instance
+          .collection('Orders')
+          .doc(widget.orderId)
+          .get();
+      String consumerId = orderDoc.get('userId');
+      String riderId = orderDoc.get('riderId');
+
+      // Create the chat
+      final chatService = ChatService(); // Create ChatService instance
+      String chatId = await chatService.createChat(consumerId, riderId);
+
+      // Get the consumer's name
+      DocumentSnapshot consumerDoc = await FirebaseFirestore.instance
+          .collection(
+              'Consumer') // Assuming your consumer collection is named 'consumers'
+          .doc(consumerId)
+          .get();
+      String consumerName = consumerDoc.get('First Name') ??
+          'Customer'; // Use 'Customer' if name is not found
+
+      // Get the rider's name
+      DocumentSnapshot riderDoc = await FirebaseFirestore.instance
+          .collection(
+              'Rider') // Assuming your rider collection is named 'riders'
+          .doc(riderId)
+          .get();
+      String riderName = riderDoc.get('First Name') ??
+          'Rider'; // Use 'Rider' if name is not found
+
+      // Send the automatic message
+      String message =
+          "Hi $consumerName,\n\nThis is $riderName, your personal shopper at Momo! I'm here to help you with your order. 😊\n\nPlease feel free to send me any questions or special requests you may have. I'll do my best to assist you.";
+      await chatService.sendMessage(chatId, message);
+    } catch (e) {
+      print('Error taking order: $e');
+      // Show error message to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to take order. Please try again.'),
+        ),
+      );
+    }
+    // Navigate to next page (to be implemented)
+    Navigator.pushReplacementNamed(context, '/riderOrderConfirmationPage');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Order Summary"),
+        title: const Text("Order Details"),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () async {
-              Navigator.pushReplacementNamed(context, '/consumerHome');
+            onPressed: () {
+              Navigator.pushReplacementNamed(context, '/riderHome');
             },
           ),
         ],
@@ -504,20 +453,23 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Display different content based on isTaken field
-                if (orderDoc['isTaken'] == true &&
-                    orderDoc['isDelivered'] == false)
-                  _buildOrderTakenContent(orderDoc)
-                else if (orderDoc['isTaken'] == true &&
-                    orderDoc['isDelivered'] == true)
-                  _buildorderCompletedContent(orderDoc)
-                else
-                  _buildOrderPlacedContent(),
                 _buildOrderDetails(orderDoc),
               ],
             ),
           );
         },
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+          onPressed: _takeOrder,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF3DBC96), // Change the button color
+            foregroundColor: Colors.white, // Change the font color
+            minimumSize: const Size.fromHeight(50),
+          ),
+          child: const Text("Take This Order"),
+        ),
       ),
     );
   }

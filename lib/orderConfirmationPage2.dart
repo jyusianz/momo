@@ -795,9 +795,8 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
       appBar: _buildAppBar(context),
       body: _buildBody(),
       bottomNavigationBar: Container(
-        width: double.infinity, // Make the button the same width as the screen
-        color: Colors.green, // Set the button color to green
-        child: TextButton(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
           onPressed: () async {
             if (_addressController.text.isEmpty || _selectedMarket == null) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -875,13 +874,12 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
             //}
             */
           },
-          child: const Text(
-            "Pay Now",
-            style: TextStyle(
-              color: Colors.black, // Set font color to black
-              fontWeight: FontWeight.w500, // Medium weight
-            ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF3DBC96), // Change the button color
+            foregroundColor: Colors.white, // Change the font color
+            minimumSize: const Size.fromHeight(50),
           ),
+          child: const Text("Pay Now"),
         ),
       ),
     );

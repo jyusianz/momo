@@ -27,7 +27,7 @@ class Rider extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(70.0),
+                padding: const EdgeInsets.all(30.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -40,7 +40,7 @@ class Rider extends StatelessWidget {
                     const Text(
                       'GO FRESH WITH ',
                       style: TextStyle(
-                        fontSize: 34,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -50,20 +50,20 @@ class Rider extends StatelessWidget {
                     const Text(
                       'JUST ONE CLICK!',
                       style: TextStyle(
-                        fontSize: 34,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 24),
                     const Text(
-                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum in dolor quis ex aliquet dapibus.',
+                      'Your all-in-one grocery listing and delivery app. Easily create and manage your grocery lists, connect with trusted stores, and enjoy seamless delivery straight to your door.',
                       style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
+                        fontSize: 14,
+                        color: Colors.black,
                       ),
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.justify,
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
@@ -72,12 +72,12 @@ class Rider extends StatelessWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 100,
-                          vertical: 40,
+                          horizontal: 90,
+                          vertical: 10,
                         ),
                         backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                       child: const Text(
@@ -86,6 +86,7 @@ class Rider extends StatelessWidget {
                           color: Color(0xFF55CFA7),
                           fontSize: 20,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     const SizedBox(height: 16),

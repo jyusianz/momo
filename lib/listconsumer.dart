@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:food/firebase/firebase_auth_service.dart';
 import 'package:food/orderConfirmationPage3.dart';
 import 'package:intl/intl.dart';
-import 'package:food/orderConfirmationPage3.dart';
 
 class Listconsumer extends StatefulWidget {
   const Listconsumer({super.key});
@@ -80,7 +80,10 @@ class _ListconsumerState extends State<Listconsumer>
           ),
           InkWell(
             onTap: () {
-              Navigator.pushNamed(context, '/chatconsumer');
+              Navigator.pushNamed(
+                context,
+                '/chatListScreen',
+              );
             },
             child: Image.asset('Momo_images/chat.png'),
           ),
@@ -102,7 +105,8 @@ Widget _buildOngoingOrdersStream() {
     stream: FirebaseFirestore.instance
         .collection('Orders')
         .where('isPlaced', isEqualTo: true)
-        .where('isCompleted', isEqualTo: false)
+        .where('isDelivered', isEqualTo: false)
+        .where('userId', isEqualTo: globalUID)
         .snapshots(),
     builder: (context, snapshot) {
       if (snapshot.hasError) {
@@ -151,8 +155,9 @@ Widget _buildOrderHistoryStream() {
   return StreamBuilder<QuerySnapshot>(
     stream: FirebaseFirestore.instance
         .collection('Orders')
-        .where('isPlaced', isEqualTo: false)
-        .where('isCompleted', isEqualTo: true)
+        .where('isPlaced', isEqualTo: true)
+        .where('isDelivered', isEqualTo: true)
+        .where('userId', isEqualTo: globalUID)
         .snapshots(),
     builder: (context, snapshot) {
       if (snapshot.hasError) {

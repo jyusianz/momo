@@ -58,13 +58,14 @@ class _VerificationRiderState extends State<VerificationRider> {
                 ),
               ),
             ),
-            const SizedBox(height: 50.0),
+            const SizedBox(height: 30.0),
             const Center(
               child: Text(
-                'Enter your verification code that we sent\n                 you through your email.',
+                'Enter your verification code that we sent you through your email.',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 50.0),
@@ -73,9 +74,9 @@ class _VerificationRiderState extends State<VerificationRider> {
               children: [
                 for (int i = 0; i < 4; i++)
                   Container(
-                    width: 70,
-                    height: 70,
-                    margin: const EdgeInsets.all(10),
+                    width: 50,
+                    height: 50,
+                    margin: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: _errorBorders[i] ? Colors.red : Colors.grey,

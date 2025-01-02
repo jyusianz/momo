@@ -121,14 +121,14 @@ class _SignupConsumerState extends State<SignupConsumer> {
 
     try {
       // Register user with FirebaseAuthService
-      final userCredential =
-          await _service.registerCredential(emailString, passwordString);
+      final userCredential = await _service.registerCredential(
+          emailString, passwordString, 'Consumer');
       final uid = userCredential.user?.uid; // Get UID of the registered user
 
       if (uid == null) {
         throw Exception("User ID is null.");
       }
- 
+
       // Save user data in Firestore under the same UID
       await FirebaseFirestore.instance.collection('Consumer').doc(uid).set({
         'First Name': firstNameString,

@@ -3,23 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:food/consts.dart';
 import 'package:food/firebase_options.dart';
 import 'package:food/showlistconsumer.dart';
-import 'package:food/utils/rider.dart';
+import 'package:food/rider.dart';
 import 'package:food/signup_rider.dart';
 import 'package:food/signin_rider.dart';
 import 'package:food/verificationRider.dart';
 import 'package:food/completeprofileRider.dart';
 import 'package:food/riderHome.dart';
 import 'package:food/listrider.dart';
-import 'package:food/chatrider.dart';
 import 'package:food/riderprofile.dart';
-import 'package:food/orderdetsrider.dart';
+import 'package:food/orderdetails.dart';
 import 'package:food/editprofilerider.dart';
 import 'package:food/manageaddressrider.dart';
 import 'package:food/paymentmethodrider.dart';
 import 'package:food/settingsrider.dart';
 import 'package:food/helpcenterrider.dart';
 import 'package:food/privacypolicyrider.dart';
-import 'package:food/messengerrider.dart';
 import 'package:food/consumer.dart';
 import 'package:food/welcomeScreen.dart';
 import 'package:food/signup_consumer.dart';
@@ -28,7 +26,6 @@ import 'package:food/verificationConsumer.dart';
 import 'package:food/completeprofileconsumer.dart';
 import 'package:food/consumerHome.dart';
 import 'package:food/listconsumer.dart';
-import 'package:food/chatconsumer.dart';
 import 'package:food/consumerprofile.dart';
 import 'package:food/editprofileconsumer.dart';
 import 'package:food/manageaddressconsumer.dart';
@@ -37,20 +34,20 @@ import 'package:food/settingsconsumer.dart';
 import 'package:food/helpcenterconsumer.dart';
 import 'package:food/privacypolicyconsumer.dart';
 import 'package:food/inputlistconsumer.dart';
-import 'package:food/orderlistrequestconsumer.dart';
-import 'package:food/messengerconsumer.dart';
-import 'package:food/orderrequestconsumer.dart';
-import 'package:food/redirectingtogcash.dart';
 import 'package:food/waitingconsumer.dart';
 import 'package:food/estarrivalconsumer.dart';
 import 'package:food/Listrider2ongo.dart';
-import 'package:food/orderriderupdate.dart';
+import 'package:food/riderOrderConfirmationPage.dart';
 import 'package:food/orderrecieptrider.dart';
 import 'package:food/folderpage.dart';
 import 'package:food/orderConfirmationPage1.dart';
 import 'package:food/orderConfirmationPage2.dart';
 import 'package:food/orderConfirmationPage3.dart';
+import 'package:food/shoppingInProgress.dart';
+import 'package:food/deliveryPage.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:food/chatListScreen.dart';
+import 'package:food/chatScreen.dart';
 import 'utils/user.dart';
 
 Future<void> main() async {
@@ -93,12 +90,11 @@ class MomoApp extends StatelessWidget {
         '/signin_consumer': (context) => const Signin_consumer(),
         '/verificationRider': (context) => const VerificationRider(),
         '/verificationConsumer': (context) => const VerificationConsumer(),
-        '/completeprofileRider': (context) => const CompleteprofileRider(),
+        '/completeprofileRider': (context) => const CompleteProfileRider(),
         '/riderHome': (context) => const RiderHome(),
         '/listrider': (context) => const Listrider(),
-        '/chatrider': (context) => const Chatrider(),
         '/riderprofile': (context) => const Riderprofile(),
-        '/orderdetsrider': (context) => const Orderdetsrider(),
+        '/orderdetails': (context) => const OrderDetailsPage(orderId: ''),
         '/completeprofileconsumer': (context) =>
             const CompleteProfileConsumer(),
         '/editprofilerider': (context) => const Editprofilerider(),
@@ -107,10 +103,8 @@ class MomoApp extends StatelessWidget {
         '/settingsrider': (context) => const Settingsrider(),
         '/helpcenterrider': (context) => const Helpcenterrider(),
         '/privacypolicyrider': (context) => const Privacypolicyrider(),
-        '/messengerrider': (context) => const Messengerrider(),
         '/consumerHome': (context) => const ConsumerHome(),
         '/listconsumer': (context) => const Listconsumer(),
-        '/chatconsumer': (context) => const Chatconsumer(),
         '/consumerprofile': (context) => const Consumerprofile(),
         '/editprofileconsumer': (context) => const Editprofileconsumer(),
         '/manageaddressconsumer': (context) => const Manageaddressconsumer(),
@@ -119,15 +113,11 @@ class MomoApp extends StatelessWidget {
         '/helpcenterconsumer': (context) => const Helpcenterconsumer(),
         '/privacypolicyconsumer': (context) => const Privacypolicyconsumer(),
         '/inputlistconsumer': (context) => const Inputlistconsumer(),
-        '/orderlistrequestconsumer': (context) =>
-            const Orderlistrequestconsumer(),
-        '/messengerconsumer': (context) => const Messengerconsumer(),
-        '/orderrequestconsumer': (context) => const Orderrequestconsumer(),
-        '/redirectingtogcash': (context) => const Redirectingtogcash(),
         '/waitingconsumer': (context) => const Waitingconsumer(),
         '/estarrivalconsumer': (context) => const Estarrivalconsumer(),
         '/listrider2ongo': (context) => const Listrider2ongo(),
-        '/orderriderupdate': (context) => const Orderriderupdate(),
+        '/riderOrderConfirmationPage': (context) =>
+            const RiderOrderConfirmationPage(orderId: ''),
         '/orderrecieptrider': (context) => const Orderrecieptrider(),
         '/showlistconsumer': (context) => const Showlistconsumer(),
         // Modified these routes to handle parameters properly
@@ -138,6 +128,11 @@ class MomoApp extends StatelessWidget {
             const OrderConfirmationPage2(orderId: ''),
         '/orderConfirmationPage3': (context) =>
             const OrderConfirmationPage3(orderId: ''),
+        '/shoppingInProgress': (context) =>
+            const ShoppingInProgressPage(orderId: ''),
+        '/deliveryPage': (context) => const Deliverypage(orderId: ''),
+        '/chatListScreen': (context) => const ChatListScreen(),
+        '/chatScreen': (context) => const ChatScreen(chatId: ''),
       },
     );
   }

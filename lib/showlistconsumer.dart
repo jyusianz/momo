@@ -461,9 +461,104 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                               child: const Text('Save'),
                             ),
                             ElevatedButton(
-                              onPressed: () {
-                                Navigator.pushNamed(
-                                    context, '/orderlistrequestconsumer');
+                              onPressed: () async {
+                                await saveLists();
+                                if (_currentLid != null && globalUID != null) {
+                                  try {
+                                    // 1. Fetch all items from the list
+                                    final itemsSnapshot =
+                                        await FirebaseFirestore.instance
+                                            .collection('Consumer')
+                                            .doc(globalUID!)
+                                            .collection('List')
+                                            .doc(_currentLid!)
+                                            .collection('Items')
+                                            .get();
+
+                                    // 2. Fetch user data (first name, last name, phone number)
+                                    final userDoc = await FirebaseFirestore
+                                        .instance
+                                        .collection('Consumer')
+                                        .doc(globalUID!)
+                                        .get();
+                                    final firstName = userDoc.get('First Name');
+                                    final lastName = userDoc.get('Last Name');
+                                    final mobileNumber =
+                                        userDoc.get('Mobile Number');
+
+                                    // 3. Create a new document in the "Orders" collection
+                                    final newOrderRef = await FirebaseFirestore
+                                        .instance
+                                        .collection('Orders')
+                                        .add({
+                                      'consumerUID': globalUID,
+                                      'listID': _currentLid,
+                                      'isPlaced': false,
+                                      'firstName':
+                                          firstName, // Add first name to order document
+                                      'lastName':
+                                          lastName, // Add last name to order document
+                                      'mobileNumber':
+                                          mobileNumber, // Add phone number to order document
+                                      // Add other order details here (replace the comment)
+                                      'OrderId':
+                                          '', // You might want to generate a unique ID here
+                                      'userId': globalUID,
+                                      'orderedAt': Timestamp.now(),
+                                      'riderId': '',
+                                      'isTaken': false,
+                                      'deliveryAddress': '',
+                                      'market': '',
+                                      'itemCount': itemsSnapshot.docs.length,
+                                      'estTotal': '',
+                                      'isShoppingStarted': false,
+                                      'isDelivered': false,
+                                    });
+
+                                    // 4. Copy items to the "Items" subcollection of the order, and add srPrice and totalPrice
+                                    for (var itemDoc in itemsSnapshot.docs) {
+                                      // Get the item data as a Map
+                                      Map<String, dynamic> itemData =
+                                          itemDoc.data();
+
+                                      // Add the new fields to the itemData map
+                                      itemData['srPrice'] =
+                                          0; // Initially set srPrice to 0
+                                      itemData['totalPrice'] =
+                                          0; // Initially set totalPrice to 0
+
+                                      // Add the updated item data to the subcollection
+                                      await newOrderRef
+                                          .collection('Items')
+                                          .add(itemData);
+                                    }
+
+                                    // 5. Navigate to OrderConfirmationPage1
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            OrderConfirmationPage1(
+                                          orderId: newOrderRef.id,
+                                        ),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    print("Error creating order: $e");
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                              Text("Error creating order.")),
+                                    );
+                                  }
+                                } else {
+                                  // Handle cases where _currentLid or globalUID is null
+                                  print("Error: Cannot create order.");
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text("Error creating order.")),
+                                  );
+                                }
                               },
                               child: const Text('Save & Order'),
                             ),
@@ -732,6 +827,8 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                 'market': '',
                 'itemCount': itemsSnapshot.docs.length,
                 'estTotal': '',
+                'isShoppingStarted': false,
+                'isDelivered': false,
               });
 
               // 4. Copy items to the "Items" subcollection of the order, and add srPrice and totalPrice

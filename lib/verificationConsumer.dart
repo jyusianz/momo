@@ -7,7 +7,7 @@ class VerificationConsumer extends StatefulWidget {
   @override
   State<VerificationConsumer> createState() => _VerificationConsumerState();
 }
-  
+
 class _VerificationConsumerState extends State<VerificationConsumer> {
   final _controllers = [
     TextEditingController(),
@@ -66,6 +66,7 @@ class _VerificationConsumerState extends State<VerificationConsumer> {
                 style: TextStyle(
                   fontSize: 16,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 50.0),
@@ -74,9 +75,9 @@ class _VerificationConsumerState extends State<VerificationConsumer> {
               children: [
                 for (int i = 0; i < 4; i++)
                   Container(
-                    width: 70,
-                    height: 70,
-                    margin: const EdgeInsets.all(10),
+                    width: 50,
+                    height: 50,
+                    margin: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
                       border: Border.all(
                         color: _errorBorders[i] ? Colors.red : Colors.grey,
