@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:food/shoppingInProgress.dart';
+import 'package:Momo/shoppingInProgress.dart';
 //import 'package:url_launcher/url_launcher.dart';
 
 class RiderOrderConfirmationPage extends StatefulWidget {
   final String orderId;
 
-  const RiderOrderConfirmationPage({Key? key, required this.orderId})
-      : super(key: key);
+  const RiderOrderConfirmationPage({super.key, required this.orderId});
 
   @override
   State<RiderOrderConfirmationPage> createState() =>
@@ -349,12 +348,12 @@ class _RiderOrderConfirmationPageState
                 ),
               // Display estimated price (srPrice)
               Text(
-                "Estimated Price: \₱${estimatedPrice.toStringAsFixed(2)}",
+                "Estimated Price: ₱${estimatedPrice.toStringAsFixed(2)}",
                 style: const TextStyle(fontSize: 14),
               ),
               // Display total price for this item (totalPrice)
               Text(
-                "Item Total: \₱${itemTotal.toStringAsFixed(2)}",
+                "Item Total: ₱${itemTotal.toStringAsFixed(2)}",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

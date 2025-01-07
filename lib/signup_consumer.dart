@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
-import 'package:food/verificationConsumer.dart'; // Correct import
+import 'package:Momo/firebase/firebase_auth_service.dart';
+import 'package:Momo/verificationConsumer.dart'; // Correct import
 
 class SignupConsumer extends StatefulWidget {
   const SignupConsumer({super.key});
@@ -105,7 +105,10 @@ class _SignupConsumerState extends State<SignupConsumer> {
   }
 
   Future<void> signUp() async {
+    print('\n=== Starting SignUp Process ===');
+
     if (!_agreeToTerms) {
+      print('❌ Error: Terms and conditions not accepted');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You must agree to the terms and conditions.'),
@@ -119,25 +122,40 @@ class _SignupConsumerState extends State<SignupConsumer> {
     final lastNameString = _LastNameController.text.trim();
     final firstNameString = _FirstNameController.text.trim();
 
+    print('📝 Signup attempt with:');
+    print('- Email: $emailString');
+    print('- First Name: $firstNameString');
+    print('- Last Name: $lastNameString');
+
     try {
+      print('\n🔄 Attempting to register user with Firebase Auth...');
       // Register user with FirebaseAuthService
       final userCredential = await _service.registerCredential(
           emailString, passwordString, 'Consumer');
-      final uid = userCredential.user?.uid; // Get UID of the registered user
+      final uid = userCredential.user?.uid;
 
       if (uid == null) {
+        print('❌ Error: User ID is null after registration');
         throw Exception("User ID is null.");
       }
 
+      print('✅ Firebase Auth registration successful');
+      print('📌 Generated UID: $uid');
+
+      print('\n🔄 Saving user data to Firestore...');
       // Save user data in Firestore under the same UID
       await FirebaseFirestore.instance.collection('Consumer').doc(uid).set({
         'First Name': firstNameString,
         'Last Name': lastNameString,
         'email': emailString,
-        'User Name': '', // Empty or default values
+        'User Name': '',
         'Mobile Number': '',
         'Gender': '',
       }, SetOptions(merge: true));
+
+      print('✅ Firestore data saved successfully');
+      print('\n🎉 SignUp Process Completed Successfully!');
+      print('=== End of SignUp Process ===\n');
 
       // Navigate to the next page with the UID
       Navigator.push(
@@ -147,6 +165,11 @@ class _SignupConsumerState extends State<SignupConsumer> {
         ),
       );
     } catch (e) {
+      print('\n❌ SignUp Error:');
+      print('- Error Type: ${e.runtimeType}');
+      print('- Error Message: $e');
+      print('=== End of SignUp Process with Error ===\n');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Registration failed: $e'),

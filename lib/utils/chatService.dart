@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 //import 'package:firebase_auth/firebase_auth.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
 
 class ChatService {
   final _firestore = FirebaseFirestore.instance;
@@ -35,16 +35,18 @@ class ChatService {
   Future<String?> getExistingChat(String consumerId, String riderId) async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('Chats') // Replace with your actual chat collection name
+          .collection('Chats')
           .where('participants', arrayContainsAny: [consumerId, riderId]).get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        // Chat exists, return the chatId
-        return querySnapshot.docs.first.id;
-      } else {
-        // Chat doesn't exist
-        return null;
+      for (var doc in querySnapshot.docs) {
+        List participants = doc['participants'];
+        if (participants.contains(consumerId) &&
+            participants.contains(riderId)) {
+          return doc.id;
+        }
       }
+
+      return null; // No matching chat found
     } catch (e) {
       print('Error checking for existing chat: $e');
       return null;

@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:food/firebase/firebase_auth_service.dart';
+//import 'package:Momo/firebase/firebase_auth_service.dart';
 import 'package:flutter/material.dart';
 
 class OrderConfirmationPage3 extends StatefulWidget {
@@ -352,12 +352,12 @@ class _OrderConfirmationPage3State extends State<OrderConfirmationPage3> {
                 ),
               // Display estimated price (srPrice)
               Text(
-                "Estimated Price: \₱${estimatedPrice.toStringAsFixed(2)}",
+                "Estimated Price: ₱${estimatedPrice.toStringAsFixed(2)}",
                 style: const TextStyle(fontSize: 14),
               ),
               // Display total price for this item (totalPrice)
               Text(
-                "Item Total: \₱${itemTotal.toStringAsFixed(2)}",
+                "Item Total: ₱${itemTotal.toStringAsFixed(2)}",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

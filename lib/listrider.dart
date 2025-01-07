@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
 import 'package:intl/intl.dart';
-import 'package:food/riderOrderConfirmationPage.dart';
-import 'package:food/deliveryPage.dart';
+import 'package:Momo/deliveryPage.dart';
 
 class Listrider extends StatefulWidget {
   const Listrider({super.key});

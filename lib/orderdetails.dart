@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
-import 'package:food/utils/chatService.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
+import 'package:Momo/utils/chatService.dart';
 import 'package:flutter/material.dart';
 
 class OrderDetailsPage extends StatefulWidget {
@@ -356,9 +356,16 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     }
   }
 
-  // Function to handle taking the order
+  // Fixed _takeOrder method
   Future<void> _takeOrder() async {
     try {
+      // First, get the order document
+      DocumentSnapshot orderDoc = await FirebaseFirestore.instance
+          .collection('Orders')
+          .doc(widget.orderId)
+          .get();
+
+      // Update the order with rider information
       await FirebaseFirestore.instance
           .collection('Orders')
           .doc(widget.orderId)
@@ -366,60 +373,54 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
         'isTaken': true,
         'riderId': globalUID,
       });
-      // Get the consumerId and riderId
-      DocumentSnapshot orderDoc = await FirebaseFirestore.instance
-          .collection('Orders')
-          .doc(widget.orderId)
-          .get();
-      String consumerId = orderDoc.get('userId');
-      String riderId = orderDoc.get('riderId');
 
-      // Get the consumer's name
+      // Get the consumer ID from the order
+      String consumerId = orderDoc['userId'];
+
+      // Get the rider's document
+      DocumentSnapshot riderDoc = await FirebaseFirestore.instance
+          .collection('Rider')
+          .doc(globalUID)
+          .get();
+
+      // Get the consumer's document using the ID from the order
       DocumentSnapshot consumerDoc = await FirebaseFirestore.instance
-          .collection(
-              'Consumer') // Assuming your consumer collection is named 'consumers'
+          .collection('Consumer')
           .doc(consumerId)
           .get();
-      String consumerName = consumerDoc.get('First Name') ??
-          'Customer'; // Use 'Customer' if name is not found
 
-      // Get the rider's name
-      DocumentSnapshot riderDoc = await FirebaseFirestore.instance
-          .collection(
-              'Rider') // Assuming your rider collection is named 'riders'
-          .doc(riderId)
-          .get();
-      String riderName = riderDoc.get('First Name') ??
-          'Rider'; // Use 'Rider' if name is not found
+      // Extract names, using null-coalescing operator for safety
+      String riderName = riderDoc.get('First Name') ?? 'Rider';
+      String consumerName = consumerDoc.get('First Name') ?? 'Customer';
 
-      // Create the chat, checking if it exists first
-      final chatService = ChatService(); // Create ChatService instance
-      String? chatId = await chatService.getExistingChat(consumerId, riderId);
+      // Create or get existing chat
+      final chatService = ChatService();
+      String? chatId =
+          await chatService.getExistingChat(consumerId, globalUID!);
 
-      chatId == null
-          ?
-          // Create the chat
-          chatId = await chatService.createChat(consumerId, riderId)
-          : chatId = chatId;
+      chatId ??= await chatService.createChat(consumerId, globalUID!);
 
-      // Send the automatic message
+      // Send welcome message
       String message =
           "Hi $consumerName,\n\nThis is $riderName, your personal shopper at Momo! I'm here to help you with your order. 😊\n\nPlease feel free to send me any questions or special requests you may have. I'll do my best to assist you.";
 
-      await chatService.sendMessage(chatId!, message);
+      await chatService.sendMessage(chatId, message);
+
+      // Navigate to next page
+      if (mounted) {
+        Navigator.pushNamed(context, '/riderOrderConfirmationPage',
+            arguments: widget.orderId);
+      }
     } catch (e) {
       print('Error taking order: $e');
-      // Show error message to user
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to take order. Please try again.'),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to take order. Please try again.'),
+          ),
+        );
+      }
     }
-    // Navigate to next page (to be implemented)
-    print(widget.orderId);
-    Navigator.pushNamed(context, '/riderOrderConfirmationPage',
-        arguments: widget.orderId);
   }
 
   @override

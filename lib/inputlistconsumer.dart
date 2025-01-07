@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
+//import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class Inputlistconsumer extends StatefulWidget {
@@ -249,7 +249,7 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
     }
   }
 
-  final Map<String, XFile?> _itemImages = {};
+  //final Map<String, XFile?> _itemImages = {};
   bool _isTitleEditable = false;
 
   @override
@@ -428,11 +428,24 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
                               },
                               child: const Text('Cancel'),
                             ),
+                            // Also modify the onPressed handler of the Save button in the dialog
                             ElevatedButton(
                               onPressed: () async {
-                                await saveLists();
-                                Navigator.popUntil(context,
-                                    ModalRoute.withName('/consumerHome'));
+                                print('\n=== Starting List Save Process ===');
+                                try {
+                                  await saveLists();
+                                  print('✅ List saved successfully');
+                                  print('🔄 Navigating back to home screen...');
+                                  Navigator.popUntil(context,
+                                      ModalRoute.withName('/consumerHome'));
+                                  print('=== End of List Save Process ===\n');
+                                } catch (e) {
+                                  print('\n❌ Error in List Save Process:');
+                                  print('- Error Type: ${e.runtimeType}');
+                                  print('- Error Message: $e');
+                                  print(
+                                      '=== End of List Save Process with Error ===\n');
+                                }
                               },
                               child: const Text('Save'),
                             ),
@@ -872,11 +885,11 @@ class _InputlistconsumerState extends State<Inputlistconsumer> {
   }
 
   // Save changes when editing is done
-  void _saveChanges() {
+  /*void _saveChanges() {
     setState(() {
       _isEditing = false;
     });
-  }
+  }*/
 }
 
 // Widget for displaying an order card

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
 
 class Signin_consumer extends StatefulWidget {
   const Signin_consumer({super.key});
@@ -12,6 +12,49 @@ class _Signin_consumerState extends State<Signin_consumer> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FirebaseAuthService _service = FirebaseAuthService();
+
+  // Add this method to the _Signin_consumerState class
+  Future<void> signIn() async {
+    print('\n=== Starting SignIn Process ===');
+
+    final emailString = _emailController.text.trim();
+    final passwordString = _passwordController.text.trim();
+
+    print('📝 Login attempt with:');
+    print('- Email: $emailString');
+
+    try {
+      print('\n🔄 Attempting to verify credentials with Firebase Auth...');
+      final user = await _service.verifyCredential(emailString, passwordString);
+
+      if (user != null) {
+        print('✅ Login Successful!');
+        print('📌 User ID: $globalUID');
+        print('📧 Email: $emailString');
+        print('=== End of SignIn Process ===\n');
+
+        // Navigate to the home screen if login is successful
+        Navigator.pushNamed(context, '/consumerHome');
+      } else {
+        print('❌ Login Failed: Invalid credentials');
+        print('=== End of SignIn Process with Error ===\n');
+
+        // Show an error message if login fails
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid credentials')),
+        );
+      }
+    } catch (e) {
+      print('\n❌ SignIn Error:');
+      print('- Error Type: ${e.runtimeType}');
+      print('- Error Message: $e');
+      print('=== End of SignIn Process with Error ===\n');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,24 +177,9 @@ class _Signin_consumerState extends State<Signin_consumer> {
               ),
               const SizedBox(height: 40),
               // Sign Up Button
+              // Modify the ElevatedButton's onPressed callback to use the new signIn method
               ElevatedButton(
-                onPressed: () async {
-                  final emailString = _emailController.text.trim();
-                  final passwordString = _passwordController.text.trim();
-
-                  final user = await _service.verifyCredential(
-                      emailString, passwordString);
-
-                  if (user != null) {
-                    // Navigate to the home screen if login is successful
-                    Navigator.pushNamed(context, '/consumerHome');
-                  } else {
-                    // Show an error message if login fails
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invalid credentials')),
-                    );
-                  }
-                },
+                onPressed: signIn,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF12958C),
                   foregroundColor: const Color(0xFFFFFFFF),
@@ -164,6 +192,7 @@ class _Signin_consumerState extends State<Signin_consumer> {
                 ),
                 child: const Text('Sign In'),
               ),
+
               const SizedBox(height: 20),
               // Or sign up with
               const Text(

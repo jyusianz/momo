@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Editprofileconsumer extends StatefulWidget {
@@ -78,13 +78,13 @@ class _EditprofileconsumerState extends State<Editprofileconsumer> {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _usernameController =
+    final TextEditingController usernameController =
         TextEditingController(text: _username);
-    final TextEditingController _phoneNumberController =
+    final TextEditingController phoneNumberController =
         TextEditingController(text: phoneNumber.substring(1, 11));
-    final TextEditingController _LastNameController =
+    final TextEditingController LastNameController =
         TextEditingController(text: lastName);
-    final TextEditingController _FirstNameController =
+    final TextEditingController FirstNameController =
         TextEditingController(text: firstName);
 
     return Scaffold(
@@ -154,7 +154,7 @@ class _EditprofileconsumerState extends State<Editprofileconsumer> {
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: _usernameController,
+                controller: usernameController,
                 decoration: InputDecoration(
                   hintText: 'Username',
                   border: OutlineInputBorder(
@@ -164,7 +164,7 @@ class _EditprofileconsumerState extends State<Editprofileconsumer> {
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: _FirstNameController,
+                controller: FirstNameController,
                 decoration: InputDecoration(
                   hintText: 'First Name',
                   border: OutlineInputBorder(
@@ -174,7 +174,7 @@ class _EditprofileconsumerState extends State<Editprofileconsumer> {
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: _LastNameController,
+                controller: LastNameController,
                 decoration: InputDecoration(
                   hintText: 'Last Name',
                   border: OutlineInputBorder(
@@ -199,7 +199,7 @@ class _EditprofileconsumerState extends State<Editprofileconsumer> {
               ),
               const SizedBox(height: 10),
               TextField(
-                controller: _phoneNumberController,
+                controller: phoneNumberController,
                 decoration: InputDecoration(
                   hintText: 'Phone Number',
                   border: OutlineInputBorder(
@@ -248,10 +248,10 @@ class _EditprofileconsumerState extends State<Editprofileconsumer> {
                 child: ElevatedButton(
                   onPressed: () {
                     saveEditprofile(
-                      _usernameController.text.trim(),
-                      _FirstNameController.text.trim(),
-                      _LastNameController.text.trim(),
-                      _phoneNumberController.text.trim(),
+                      usernameController.text.trim(),
+                      FirstNameController.text.trim(),
+                      LastNameController.text.trim(),
+                      phoneNumberController.text.trim(),
                     );
                   },
                   style: ElevatedButton.styleFrom(

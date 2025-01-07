@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:food/services/stripe_service.dart';
-import 'package:food/orderConfirmationPage3.dart';
+import 'package:Momo/services/stripe_service.dart';
+import 'package:Momo/orderConfirmationPage3.dart';
 
 class OrderConfirmationPage2 extends StatefulWidget {
   final String orderId;
@@ -304,7 +304,7 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
         double total = subtotal + deliveryFee + serviceFee;
 
         // Update the order document with the new total and selected values
-        _updateOrderDetails(total);
+        _updateOrderDetails(total, subtotal);
 
         _total = total;
 
@@ -389,7 +389,7 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
   }
 
 // Add this new method to update order details
-  Future<void> _updateOrderDetails(double total) async {
+  Future<void> _updateOrderDetails(double total, double subtotal) async {
     try {
       await FirebaseFirestore.instance
           .collection('Orders')
@@ -397,6 +397,7 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
           .update({
         'deliveryAddress': _addressController.text,
         'market': _selectedMarket,
+        'subTotal': subtotal,
         'estTotal': total,
       });
     } catch (e) {
@@ -805,30 +806,33 @@ class _OrderConfirmationPage2State extends State<OrderConfirmationPage2> {
               );
               return;
             }
+            try {
+              final paymentSuccess =
+                  await StripeService.instance.makePayment(_total!);
+              if (paymentSuccess) {
+                print("✅ Payment successful");
 
-            final paymentSuccess =
-                await StripeService.instance.makePayment(_total!);
-            if (paymentSuccess) {
-              print("Payment successful");
+                await FirebaseFirestore.instance
+                    .collection('Orders')
+                    .doc(widget.orderId)
+                    .update({'isPlaced': true});
 
-              await FirebaseFirestore.instance
-                  .collection('Orders')
-                  .doc(widget.orderId)
-                  .update({'isPlaced': true});
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      OrderConfirmationPage3(orderId: widget.orderId),
-                ),
-              );
-            } else {
-              print('Payment failed.');
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text("Payment failed. Please try again.")),
-              );
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        OrderConfirmationPage3(orderId: widget.orderId),
+                  ),
+                );
+              } else {
+                print('❌ Payment failed.');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text("Payment failed. Please try again.")),
+                );
+              }
+            } catch (e) {
+              print('❌ Payment Failed: $e');
             }
 
             /*

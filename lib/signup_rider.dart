@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:food/verificationRider.dart';
+import 'package:Momo/verificationRider.dart';
 
 class Signup_rider extends StatefulWidget {
   const Signup_rider({super.key});

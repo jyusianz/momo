@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
-import 'package:food/orderConfirmationPage3.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
+import 'package:Momo/orderConfirmationPage3.dart';
 import 'package:intl/intl.dart';
 
 class Listconsumer extends StatefulWidget {

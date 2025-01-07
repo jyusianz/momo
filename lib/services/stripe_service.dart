@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart'; // Import for Color and ThemeMode
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:food/consts.dart';
+import 'package:Momo/consts.dart';
 
 class StripeService {
   StripeService._();

@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
-import 'package:food/orderdetails.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
+import 'package:Momo/orderdetails.dart';
 import 'package:intl/intl.dart';
-//import 'package:food/orderConfirmationPage3.dart';
+//import 'package:Momo/orderConfirmationPage3.dart';
 
 class RiderHome extends StatefulWidget {
   const RiderHome({super.key});

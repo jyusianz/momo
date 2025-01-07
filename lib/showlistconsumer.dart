@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'orderConfirmationPage1.dart'; // Import the new page
@@ -792,16 +792,21 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
   // Build the "Order This List" button as a floating action button
   Widget _buildOrderThisListButton() {
     return SizedBox(
-      width: MediaQuery.of(context).size.width - 20, // Make it screen width
+      width: MediaQuery.of(context).size.width - 20,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF3DBC96),
           foregroundColor: const Color(0xFFFFFFFF),
         ),
         onPressed: () async {
+          print("\n=== Starting Order Placement Process ===");
+          print(
+              "Attempting to create order with List ID: $_currentLid and User ID: $globalUID");
+
           if (_currentLid != null && globalUID != null) {
             try {
               // 1. Fetch all items from the list
+              print("\n[Step 1] Fetching items from list...");
               final itemsSnapshot = await FirebaseFirestore.instance
                   .collection('Consumer')
                   .doc(globalUID!)
@@ -810,27 +815,38 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                   .collection('Items')
                   .get();
 
-              // 2. Fetch user data (first name, last name, phone number)
+              print(
+                  "✅Successfully fetched ${itemsSnapshot.docs.length} items from list");
+
+              // 2. Fetch user data
+              print("\n[Step 2] Fetching user data...");
               final userDoc = await FirebaseFirestore.instance
                   .collection('Consumer')
                   .doc(globalUID!)
                   .get();
+
+              if (!userDoc.exists) {
+                print("❌ ERROR: User document not found for ID: $globalUID");
+                throw Exception("User document not found");
+              }
+
               final firstName = userDoc.get('First Name');
               final lastName = userDoc.get('Last Name');
               final mobileNumber = userDoc.get('Mobile Number');
+              print(
+                  "✅ Successfully fetched user data for: $firstName $lastName");
 
-              // 3. Create a new document in the "Orders" collection
+              // 3. Create order document
+              print("\n[Step 3] Creating new order document...");
               final newOrderRef =
                   await FirebaseFirestore.instance.collection('Orders').add({
                 'consumerUID': globalUID,
                 'listID': _currentLid,
                 'isPlaced': false,
-                'firstName': firstName, // Add first name to order document
-                'lastName': lastName, // Add last name to order document
-                'mobileNumber':
-                    mobileNumber, // Add phone number to order document
-                // Add other order details here (replace the comment)
-                'OrderId': '', // You might want to generate a unique ID here
+                'firstName': firstName,
+                'lastName': lastName,
+                'mobileNumber': mobileNumber,
+                'OrderId': '',
                 'userId': globalUID,
                 'orderedAt': Timestamp.now(),
                 'riderId': '',
@@ -843,21 +859,36 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                 'isDelivered': false,
               });
 
-              // 4. Copy items to the "Items" subcollection of the order, and add srPrice and totalPrice
+              print("✅ Successfully created order with ID: ${newOrderRef.id}");
+
+              // 4. Copy items to order
+              print("\n[Step 4] Copying items to order...");
+              int successfulCopies = 0;
+
               for (var itemDoc in itemsSnapshot.docs) {
-                // Get the item data as a Map
-                Map<String, dynamic> itemData = itemDoc.data();
+                try {
+                  Map<String, dynamic> itemData = itemDoc.data();
+                  itemData['subTotal'] = 0;
+                  itemData['srPrice'] = 0;
+                  itemData['totalPrice'] = 0;
+                  itemData['isChecked'] = false;
 
-                // Add the new fields to the itemData map
-                itemData['srPrice'] = 0; // Initially set srPrice to 0
-                itemData['totalPrice'] = 0; // Initially set totalPrice to 0
-                itemData['isChecked'] = false;
-
-                // Add the updated item data to the subcollection
-                await newOrderRef.collection('Items').add(itemData);
+                  await newOrderRef.collection('Items').add(itemData);
+                  successfulCopies++;
+                  print("✅ Successfully copied item: ${itemData['Name']}");
+                } catch (e) {
+                  print("❌ ERROR: Failed to copy item ${itemDoc.id}: $e");
+                }
               }
 
-              // 5. Navigate to OrderConfirmationPage1
+              print(
+                  "✅ Successfully copied $successfulCopies out of ${itemsSnapshot.docs.length} items");
+
+              // 5. Navigate to confirmation page
+              print(
+                  "\n[Step 5]✅  Order creation complete - 🔄 navigating to confirmation page");
+              print("=== Order Placement Process Completed Successfully ===\n");
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -867,22 +898,26 @@ class _ShowlistconsumerState extends State<Showlistconsumer> {
                 ),
               );
             } catch (e) {
-              print("Error creating order: $e");
+              print("\n!!!❌ ERROR: Order creation failed !!!");
+              print("Error details: $e");
+              print("=== Order Placement Process Failed ===\n");
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Error creating order.")),
               );
             }
           } else {
-            // Handle cases where _currentLid or globalUID is null
-            print("Error: Cannot create order.");
+            print("\n!!!❌ERROR: Invalid state for order creation !!!");
+            print("📌Current List ID: $_currentLid");
+            print("📌Global UID: $globalUID");
+            print("=== Order Placement Process Failed ===\n");
+
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Error creating order.")),
+              const SnackBar(content: Text("❌Error creating order.")),
             );
           }
         },
-        child: const Text(
-          "Order This List",
-        ),
+        child: const Text("Order This List"),
       ),
     );
   }

@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:food/deliveryPage.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:Momo/deliveryPage.dart';
+//import 'package:url_launcher/url_launcher.dart';
 
 class ShoppingInProgressPage extends StatefulWidget {
   final String orderId;
 
-  const ShoppingInProgressPage({Key? key, required this.orderId})
-      : super(key: key);
+  const ShoppingInProgressPage({super.key, required this.orderId});
 
   @override
   State<ShoppingInProgressPage> createState() => _ShoppingInProgressPageState();
@@ -231,7 +230,7 @@ class _ShoppingInProgressPageState extends State<ShoppingInProgressPage> {
     );
   }
 
-  void _showContactDialog(String itemId, Map<String, dynamic> itemData) {
+  /*void _showContactDialog(String itemId, Map<String, dynamic> itemData) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -269,7 +268,7 @@ class _ShoppingInProgressPageState extends State<ShoppingInProgressPage> {
         );
       },
     );
-  }
+  }*/
 
   void _showEditItemDialog(String itemId, Map<String, dynamic> itemData) {
     _itemNameController.text = itemData['Name'];

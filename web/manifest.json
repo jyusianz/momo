@@ -1,6 +1,6 @@
 {
-    "name": "food",
-    "short_name": "food",
+    "name": "Momo",
+    "short_name": "Momo",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:food/estarrivalconsumer.dart';
+import 'package:Momo/estarrivalconsumer.dart';
 
 class Waitingconsumer extends StatefulWidget {
   const Waitingconsumer({super.key});

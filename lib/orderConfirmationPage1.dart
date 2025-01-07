@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:food/firebase/firebase_auth_service.dart';
+import 'package:Momo/firebase/firebase_auth_service.dart';
 import 'orderConfirmationPage2.dart'; // Import the next page
 
 class OrderConfirmationPage1 extends StatefulWidget {

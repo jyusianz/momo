@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:food/completeprofileRider.dart';
+import 'package:Momo/completeprofileRider.dart';
 
 class VerificationRider extends StatefulWidget {
   const VerificationRider({super.key});

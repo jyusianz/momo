@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '189153598464',
     projectId: 'momo-app0329',
     storageBucket: 'momo-app0329.appspot.com',
-    iosBundleId: 'com.example.food',
+    iosBundleId: 'com.example.Momo',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '189153598464',
     projectId: 'momo-app0329',
     storageBucket: 'momo-app0329.appspot.com',
-    iosBundleId: 'com.example.food',
+    iosBundleId: 'com.example.Momo',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

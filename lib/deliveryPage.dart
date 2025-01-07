@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+//import 'package:url_launcher/url_launcher.dart';
 
 class Deliverypage extends StatefulWidget {
   final String orderId;
 
-  const Deliverypage({Key? key, required this.orderId}) : super(key: key);
+  const Deliverypage({super.key, required this.orderId});
 
   @override
   State<Deliverypage> createState() => _DeliverypageState();
@@ -55,9 +55,7 @@ class _DeliverypageState extends State<Deliverypage> {
             .get();
 
         setState(() {
-          _items = itemsSnapshot.docs
-              .map((doc) => doc.data() as Map<String, dynamic>)
-              .toList();
+          _items = itemsSnapshot.docs.map((doc) => doc.data()).toList();
         });
       }
     } catch (e) {
